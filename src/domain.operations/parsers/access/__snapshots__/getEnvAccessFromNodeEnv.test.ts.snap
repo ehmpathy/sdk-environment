@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvAccessFromNodeEnv negative cases returns null when NODE_ENV is not set 1`] = `null`;
+
+exports[`getEnvAccessFromNodeEnv negative cases returns null when NODE_ENV is unknown value 1`] = `null`;
+
+exports[`getEnvAccessFromNodeEnv negative cases returns null when NODE_ENV=development 1`] = `null`;
+
+exports[`getEnvAccessFromNodeEnv positive cases returns prod when NODE_ENV=production 1`] = `"prod"`;
+
+exports[`getEnvAccessFromNodeEnv positive cases returns test when NODE_ENV=test 1`] = `"test"`;

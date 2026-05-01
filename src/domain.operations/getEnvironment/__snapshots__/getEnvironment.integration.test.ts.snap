@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvironment filled given: invalid access value from custom parser when: filled() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid access value: "invalid-access". parser: parser[0]"`;
+
+exports[`getEnvironment filled given: invalid commit value from custom parser when: filled() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid commit value: "invalid-commit". parser: parser[0]"`;
+
+exports[`getEnvironment filled given: invalid server value from custom parser when: filled() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid server value: "invalid-server". parser: parser[0]"`;
+
+exports[`getEnvironment filled given: no commit parsers return a value when: filled() is called with empty commit parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive commit. tried parsers: parser[0]"`;
+
+exports[`getEnvironment filled given: no parsers return a value when: filled() is called with empty parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
+
+exports[`getEnvironment filled given: no server parsers return a value when: filled() is called with empty server parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive server. tried parsers: parser[0]"`;
+
+exports[`getEnvironment filled given: runtime with detectable signals when: filled() is called then: returns Environment object 1`] = `
+{
+  "access": "test",
+  "commit": "v1.0.0@abc123",
+  "server": "local@unix",
+}
+`;
+
+exports[`getEnvironment static given: invalid access value from custom parser when: static() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid access value: "invalid-access". parser: parser[0]"`;
+
+exports[`getEnvironment static given: invalid commit value from custom parser when: static() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid commit value: "invalid-commit". parser: parser[0]"`;
+
+exports[`getEnvironment static given: invalid server value from custom parser when: static() is called with parser that returns invalid value then: throws BadRequestError with snapshot 1`] = `"BadRequestError: invalid server value: "invalid-server". parser: parser[0]"`;
+
+exports[`getEnvironment static given: no access parsers return a value when: static() is called with empty access parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
+
+exports[`getEnvironment static given: no commit parsers return a value when: static() is called with empty commit parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive commit. tried parsers: parser[0]"`;
+
+exports[`getEnvironment static given: no server parsers return a value when: static() is called with empty server parsers then: throws UnexpectedCodePathError with snapshot 1`] = `"UnexpectedCodePathError: could not derive server. tried parsers: parser[0]"`;
+
+exports[`getEnvironment static given: runtime with detectable signals when: static() is called then: returns Environment object 1`] = `
+{
+  "access": "prod",
+  "commit": "main@def456",
+  "server": "cloud@aws.lambda",
+}
+`;

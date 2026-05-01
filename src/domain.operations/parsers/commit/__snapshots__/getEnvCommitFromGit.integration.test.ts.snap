@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvCommitFromGit given: a git repository when: commit info is requested then: returns commit slug in $ref@$hash format 1`] = `"vlad/launch@<hash>"`;
