@@ -58,11 +58,12 @@ export const getEnvAccessFromAwsAccountAlias = async (input?: {
     if (!alias) return null;
     return matchAliasToAccess(alias, map);
   } catch (error) {
-    // allowlist: credential/auth errors return null (parser should be skipped)
+    // allowlist: config/credential/auth errors return null (parser should be skipped)
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
       const name = error.name.toLowerCase();
       if (
+        message.includes('region is missing') ||
         message.includes('could not load credentials') ||
         message.includes('no credentials') ||
         message.includes('credential') ||
