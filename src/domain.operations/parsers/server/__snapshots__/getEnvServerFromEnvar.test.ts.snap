@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvServerFromEnvar negative cases returns null when SERVER is empty string 1`] = `null`;
+
+exports[`getEnvServerFromEnvar negative cases returns null when SERVER is not set 1`] = `null`;
+
+exports[`getEnvServerFromEnvar positive cases returns value for local@unix 1`] = `"local@unix"`;
+
+exports[`getEnvServerFromEnvar positive cases returns value when SERVER is set 1`] = `"cloud@aws.lambda"`;

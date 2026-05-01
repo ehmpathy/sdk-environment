@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`fromEnvar factory behavior creates independent parsers for different envars 1`] = `
+{
+  "access": "prod",
+  "server": "local@unix",
+}
+`;
+
+exports[`fromEnvar factory behavior returns cloud@aws.lambda when SERVER is set to cloud@aws.lambda 1`] = `"cloud@aws.lambda"`;
+
+exports[`fromEnvar factory behavior returns custom-value when CUSTOM_VAR is set to custom-value 1`] = `"custom-value"`;
+
+exports[`fromEnvar factory behavior returns null when ACCESS is not set 1`] = `null`;
+
+exports[`fromEnvar factory behavior returns null when UNSET_VAR is never defined 1`] = `null`;
+
+exports[`fromEnvar factory behavior returns null when envar is empty string 1`] = `null`;
+
+exports[`fromEnvar factory behavior returns prod when ACCESS is set to prod 1`] = `"prod"`;

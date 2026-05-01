@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvAccessFromAwsAccountAlias given: aws environment with credentials when: custom map provided then: applies custom map to alias 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountAlias given: aws environment with credentials when: getEnvAccessFromAwsAccountAlias is called then: calls real aws service and returns result 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountAlias given: aws environment with credentials when: invalid credentials provided then: returns null without error 1`] = `null`;

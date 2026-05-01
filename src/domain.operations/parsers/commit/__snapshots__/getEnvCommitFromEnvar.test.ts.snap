@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvCommitFromEnvar negative cases returns null when COMMIT is empty string 1`] = `null`;
+
+exports[`getEnvCommitFromEnvar negative cases returns null when COMMIT is not set 1`] = `null`;
+
+exports[`getEnvCommitFromEnvar positive cases returns value when COMMIT is set 1`] = `"v1.0.0@abc123"`;
+
+exports[`getEnvCommitFromEnvar positive cases returns value with dirty flag 1`] = `"main@abc123+"`;

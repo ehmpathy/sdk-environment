@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvironment isolated scenarios given: detectable signals when: filled() is called then: returns Environment and matches snapshot 1`] = `
+{
+  "access": "prod",
+  "commit": "v1.2.3@abc123",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment isolated scenarios given: detectable signals when: getEnvironment() is called directly then: returns Environment (README contract) 1`] = `
+{
+  "access": "prod",
+  "commit": "v1.2.3@abc123",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment isolated scenarios given: detectable signals when: static() is called then: returns Environment and matches snapshot 1`] = `
+{
+  "access": "prod",
+  "commit": "v1.2.3@abc123",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment isolated scenarios given: invalid parser output when: filled() returns invalid access then: throws validation error with snapshot 1`] = `"BadRequestError: invalid access value: "invalid". parser: parser[0]"`;
+
+exports[`getEnvironment isolated scenarios given: invalid parser output when: static() returns invalid server then: throws validation error with snapshot 1`] = `"BadRequestError: invalid server value: "local". parser: parser[0]"`;
+
+exports[`getEnvironment isolated scenarios given: no signals when: filled() is called with empty parsers then: throws error with snapshot message 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
+
+exports[`getEnvironment isolated scenarios given: no signals when: static() is called with empty parsers then: throws error with snapshot message 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t0] custom access parser provided then: custom parser runs instead of defaults 1`] = `
+{
+  "access": "prep",
+  "commit": "deploy@xyz789",
+  "server": "cloud@aws.ecs",
+}
+`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t2] only access parser customized then: server uses default parsers 1`] = `
+{
+  "access": "test",
+  "commit": "ci@build123",
+  "server": "local@cicd",
+}
+`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t3] all custom parsers return null then: throws with parser names in error 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0], parser[1], parser[2]"`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t4] fromEnvar factory used in custom parsers then: fromEnvar reads custom envar names 1`] = `
+{
+  "access": "prod",
+  "commit": "v3.0.0@custom123",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t5] factory parsers fail with named error messages then: error includes factory parser names 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: fromEnvar(NONEXISTENT_ACCESS), fromAwsAccountAlias, fromNodeEnv"`;
+
+exports[`getEnvironment journey: developer integration workflow given: [case1] developer integrates sdk-environment when: [t0] app starts without environment configured then: filled() throws descriptive error 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
+
+exports[`getEnvironment journey: developer integration workflow given: [case1] developer integrates sdk-environment when: [t1] developer sets ACCESS=prod envar then: filled() succeeds with Environment 1`] = `
+{
+  "access": "prod",
+  "commit": "main@abc123",
+  "server": "local@unix",
+}
+`;
+
+exports[`getEnvironment journey: developer integration workflow given: [case1] developer integrates sdk-environment when: [t3] developer forces fresh parse { cache: skip } then: returns fresh Environment 1`] = `
+{
+  "access": "prep",
+  "commit": "feat/auth@def456",
+  "server": "local@cicd",
+}
+`;
+
+exports[`getEnvironment journey: developer integration workflow given: [case1] developer integrates sdk-environment when: [t4] developer uses static() for sync context then: returns sync-parsed Environment 1`] = `
+{
+  "access": "test",
+  "commit": "main@ghi789",
+  "server": "local@unix",
+}
+`;

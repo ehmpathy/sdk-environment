@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvServerFromUnixDesktop negative cases returns null when neither is set 1`] = `null`;
+
+exports[`getEnvServerFromUnixDesktop positive cases returns local@unix when TERM_PROGRAM is set 1`] = `"local@unix"`;
+
+exports[`getEnvServerFromUnixDesktop positive cases returns local@unix when XDG_SESSION_TYPE is set 1`] = `"local@unix"`;
+
+exports[`getEnvServerFromUnixDesktop positive cases returns local@unix when both are set 1`] = `"local@unix"`;

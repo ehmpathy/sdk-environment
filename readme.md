@@ -18,7 +18,7 @@ an environment is defined by three attributes:
 ```ts
 interface Environment {
   access: 'test' | 'prep' | 'prod';
-  server: string;  // 'local' | 'local@cicd' | 'cloud@aws.lambda' | ...
+  server: string;  // 'local@unix' | 'local@cicd' | 'cloud@aws.lambda' | ...
   commit: string;  // '$gitref@$hash' or '$gitref@$hash+' if dirty
 }
 ```
@@ -41,11 +41,11 @@ which tier of resources this process can access.
 
 ## server
 
-where this process executes. format: `$tier` or `$tier@$platform`
+where this process executes. format: `$tier@$platform`
 
 | value | what | examples |
 |-------|------|----------|
-| `local` | developer machine | laptop, docker compose |
+| `local@unix` | developer machine | laptop, docker compose |
 | `local@cicd` | ci runner | github actions, circleci |
 | `cloud@aws.lambda` | aws lambda | serverless functions |
 | `cloud@aws.ecs` | aws ecs | containerized services |
@@ -102,6 +102,7 @@ import {
   fromNodeEnv,
   fromLambdaTaskRoot,
   fromCiEnvar,
+  fromUnixDesktop,
   fromGit,
 } from 'sdk-environment';
 
@@ -117,7 +118,7 @@ const environment = await getEnvironment({
       fromEnvar('SERVER'),           // explicit override via SERVER=cloud@aws.lambda
       fromLambdaTaskRoot(),          // LAMBDA_TASK_ROOT present → cloud@aws.lambda
       fromCiEnvar(),                 // CI=true → local@cicd
-      () => 'local',                 // default to local
+      fromUnixDesktop(),             // XDG_SESSION_TYPE or TERM_PROGRAM → local@unix
     ],
     commit: [
       fromEnvar('COMMIT'),           // explicit override via COMMIT=v1.0.0@abc123
@@ -204,11 +205,11 @@ these are independent axes:
 
 | access | server | example |
 |--------|--------|---------|
-| test | local | `npm test` on laptop |
+| test | local@unix | `npm test` on laptop |
 | test | local@cicd | ci runner runs tests |
-| prep | local | dev laptop against prep db |
+| prep | local@unix | dev laptop against prep db |
 | prep | cloud@aws.lambda | prep lambda |
-| prod | local | production debug session |
+| prod | local@unix | production debug session |
 | prod | cloud@aws.lambda | production lambda |
 
 this separation enables precise behavior:

@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvServerFromLambdaTaskRoot negative cases returns null when LAMBDA_TASK_ROOT is not set 1`] = `null`;
+
+exports[`getEnvServerFromLambdaTaskRoot positive cases returns cloud@aws.lambda when LAMBDA_TASK_ROOT is set 1`] = `"cloud@aws.lambda"`;

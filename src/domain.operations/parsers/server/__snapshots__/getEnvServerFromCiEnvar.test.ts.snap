@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvServerFromCiEnvar negative cases returns null when CI is not set 1`] = `null`;
+
+exports[`getEnvServerFromCiEnvar negative cases returns null when CI=false 1`] = `null`;
+
+exports[`getEnvServerFromCiEnvar positive cases returns local@cicd when CI=true 1`] = `"local@cicd"`;

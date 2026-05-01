@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvAccessFromEnvar negative cases returns null when ACCESS is empty string 1`] = `null`;
+
+exports[`getEnvAccessFromEnvar negative cases returns null when ACCESS is not set 1`] = `null`;
+
+exports[`getEnvAccessFromEnvar positive cases returns value when ACCESS is set to prep 1`] = `"prep"`;
+
+exports[`getEnvAccessFromEnvar positive cases returns value when ACCESS is set to prod 1`] = `"prod"`;
+
+exports[`getEnvAccessFromEnvar positive cases returns value when ACCESS is set to test 1`] = `"test"`;

@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`matchAliasToAccess custom exact match org-prod returns prod 1`] = `"prod"`;
+
+exports[`matchAliasToAccess custom glob match *-prod matches myorg-prod 1`] = `"prod"`;
+
+exports[`matchAliasToAccess custom glob match myorg-* matches myorg-foo 1`] = `"prod"`;
+
+exports[`matchAliasToAccess default map bar-prep returns prep 1`] = `"prep"`;
+
+exports[`matchAliasToAccess default map baz-test returns test 1`] = `"test"`;
+
+exports[`matchAliasToAccess default map foo-prod returns prod 1`] = `"prod"`;
+
+exports[`matchAliasToAccess exact wins over glob exact match takes precedence 1`] = `"prep"`;
+
+exports[`matchAliasToAccess first match wins first glob in order wins 1`] = `"prod"`;
+
+exports[`matchAliasToAccess negative cases returns null when no match 1`] = `null`;
+
+exports[`matchAliasToAccess negative cases returns null with empty map 1`] = `null`;
