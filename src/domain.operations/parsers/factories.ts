@@ -5,6 +5,10 @@ import {
   type AwsAccountAliasMap,
   getEnvAccessFromAwsAccountAlias,
 } from './access/getEnvAccessFromAwsAccountAlias';
+import {
+  type AwsAccountPatternMap,
+  getEnvAccessFromAwsAccountName,
+} from './access/getEnvAccessFromAwsAccountName';
 import { getEnvAccessFromNodeEnv } from './access/getEnvAccessFromNodeEnv';
 import { getEnvCommitFromGit } from './commit/getEnvCommitFromGit';
 import { getEnvServerFromCiEnvar } from './server/getEnvServerFromCiEnvar';
@@ -21,6 +25,19 @@ export const fromAwsAccountAlias = (input?: {
   const parser = (): Promise<EnvironmentAccessTier | null> =>
     getEnvAccessFromAwsAccountAlias(input);
   Object.defineProperty(parser, 'name', { value: 'fromAwsAccountAlias' });
+  return parser;
+};
+
+/**
+ * .what = factory for fromAwsAccountName parser
+ * .why = README contract: fromAwsAccountName() returns a parser
+ */
+export const fromAwsAccountName = (input?: {
+  map?: AwsAccountPatternMap;
+}): (() => Promise<EnvironmentAccessTier | null>) => {
+  const parser = (): Promise<EnvironmentAccessTier | null> =>
+    getEnvAccessFromAwsAccountName(input);
+  Object.defineProperty(parser, 'name', { value: 'fromAwsAccountName' });
   return parser;
 };
 

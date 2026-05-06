@@ -54,6 +54,7 @@ interface GetEnvironmentStaticInput {
 const DEFAULT_ACCESS_PARSERS: AsyncParser<EnvironmentAccessTier>[] = [
   getEnvAccess.fromEnvar,
   getEnvAccess.fromAwsAccountAlias,
+  getEnvAccess.fromAwsAccountName,
   getEnvAccess.fromNodeEnv,
 ];
 

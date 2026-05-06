@@ -1,4 +1,5 @@
 import { getEnvAccessFromAwsAccountAlias } from './getEnvAccessFromAwsAccountAlias';
+import { getEnvAccessFromAwsAccountName } from './getEnvAccessFromAwsAccountName';
 import { getEnvAccessFromEnvar } from './getEnvAccessFromEnvar';
 import { getEnvAccessFromNodeEnv } from './getEnvAccessFromNodeEnv';
 
@@ -9,5 +10,6 @@ import { getEnvAccessFromNodeEnv } from './getEnvAccessFromNodeEnv';
 export const getEnvAccess = {
   fromEnvar: getEnvAccessFromEnvar,
   fromAwsAccountAlias: getEnvAccessFromAwsAccountAlias,
+  fromAwsAccountName: getEnvAccessFromAwsAccountName,
   fromNodeEnv: getEnvAccessFromNodeEnv,
 };
