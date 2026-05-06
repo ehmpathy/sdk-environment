@@ -2,7 +2,7 @@
   "name": "sdk-environment",
   "author": "ehmpathy",
   "description": "parse and expose the environment your code runs in",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "ehmpathy/sdk-environment",
   "homepage": "https://github.com/ehmpathy/sdk-environment",
   "keywords": [
