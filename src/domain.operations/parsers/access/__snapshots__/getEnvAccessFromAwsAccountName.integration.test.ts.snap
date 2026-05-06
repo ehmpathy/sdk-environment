@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: custom map provided then: applies custom map to name 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: custom map provided then: returns null when custom map has no match 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: forced output variants via custom maps then: forces null output via no-match map 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: forced output variants via custom maps then: forces prep tier output 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: forced output variants via custom maps then: forces prod tier output 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: forced output variants via custom maps then: forces test tier output 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: getEnvAccessFromAwsAccountName is called then: calls real aws service and returns result 1`] = `null`;
+
+exports[`getEnvAccessFromAwsAccountName given: aws environment with credentials when: invalid credentials provided then: returns null without error 1`] = `null`;

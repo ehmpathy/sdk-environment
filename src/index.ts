@@ -15,9 +15,13 @@ export type {
 export { getEnvironment } from './domain.operations/getEnvironment/getEnvironment';
 // namespaced parsers (internal API)
 export { getEnvAccess } from './domain.operations/parsers/access/getEnvAccess';
+// map types for custom parser config
+export type { AwsAccountAliasMap } from './domain.operations/parsers/access/getEnvAccessFromAwsAccountAlias';
+export type { AwsAccountPatternMap } from './domain.operations/parsers/access/getEnvAccessFromAwsAccountName';
 export { getEnvCommit } from './domain.operations/parsers/commit/getEnvCommit';
 export {
   fromAwsAccountAlias,
+  fromAwsAccountName,
   fromCiEnvar,
   fromGit,
   fromLambdaTaskRoot,

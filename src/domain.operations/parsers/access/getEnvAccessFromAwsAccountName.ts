@@ -1,34 +1,36 @@
 import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
-import type { AwsAccountPatternMap } from './getEnvAccessFromAwsAccountName';
 
 /**
- * .what = alias for canonical pattern map type
- * .why = backwards compat for extant code
+ * .what = account name pattern to access tier map
+ * .why = enables glob and exact pattern match
+ * .note = canonical name, reused by alias parser
  */
-export type AwsAccountAliasMap = AwsAccountPatternMap;
+export interface AwsAccountPatternMap {
+  [pattern: string]: EnvironmentAccessTier;
+}
 
-const DEFAULT_MAP: AwsAccountAliasMap = {
+const DEFAULT_MAP: AwsAccountPatternMap = {
   '*-prod': 'prod',
   '*-prep': 'prep',
   '*-test': 'test',
 };
 
 /**
- * .what = match alias against pattern map
+ * .what = match name against pattern map
  * .why = exact match wins, then glob match in order
  */
-export const matchAliasToAccess = (
-  alias: string,
-  map: AwsAccountAliasMap,
+export const matchNameToAccess = (
+  name: string,
+  map: AwsAccountPatternMap,
 ): EnvironmentAccessTier | null => {
   // exact match first
-  if (map[alias]) return map[alias]!;
+  if (map[name]) return map[name]!;
 
   // glob match in order
   for (const pattern of Object.keys(map)) {
     if (pattern.includes('*')) {
       const regex = new RegExp(`^${pattern.replace(/\*/g, '.*')}$`);
-      if (regex.test(alias)) return map[pattern]!;
+      if (regex.test(name)) return map[pattern]!;
     }
   }
 
@@ -36,31 +38,31 @@ export const matchAliasToAccess = (
 };
 
 /**
- * .what = parse access tier from aws account alias
- * .why = infer from aws account alias (e.g., 'myorg-prod' → prod)
+ * .what = parse access tier from aws account name
+ * .why = fallback when alias not set (name is always present)
  */
-export const getEnvAccessFromAwsAccountAlias = async (input?: {
-  map?: AwsAccountAliasMap;
+export const getEnvAccessFromAwsAccountName = async (input?: {
+  map?: AwsAccountPatternMap;
 }): Promise<EnvironmentAccessTier | null> => {
   const map = input?.map ?? DEFAULT_MAP;
 
   try {
     // dynamic import to avoid bundle size when not used
-    const { IAMClient, ListAccountAliasesCommand } = await import(
-      '@aws-sdk/client-iam'
+    const { AccountClient, GetAccountInformationCommand } = await import(
+      '@aws-sdk/client-account'
     );
 
-    const client = new IAMClient({});
-    const response = await client.send(new ListAccountAliasesCommand({}));
-    const alias = response.AccountAliases?.[0];
+    const client = new AccountClient({});
+    const response = await client.send(new GetAccountInformationCommand({}));
+    const accountName = response.AccountName;
 
-    if (!alias) return null;
-    return matchAliasToAccess(alias, map);
+    if (!accountName) return null;
+    return matchNameToAccess(accountName, map);
   } catch (error) {
     // allowlist: config/credential/auth errors return null (parser should be skipped)
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
-      const name = error.name.toLowerCase();
+      const errorName = error.name.toLowerCase();
       if (
         message.includes('region') ||
         message.includes('could not load credentials') ||
@@ -72,8 +74,8 @@ export const getEnvAccessFromAwsAccountAlias = async (input?: {
         message.includes('session') ||
         message.includes('expired') ||
         message.includes('reauthenticate') ||
-        name.includes('invalidclienttokenid') ||
-        name.includes('credentialsprovider')
+        errorName.includes('invalidclienttokenid') ||
+        errorName.includes('credentialsprovider')
       ) {
         return null;
       }

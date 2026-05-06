@@ -26,6 +26,8 @@ exports[`getEnvironment isolated scenarios given: detectable signals when: stati
 
 exports[`getEnvironment isolated scenarios given: invalid parser output when: filled() returns invalid access then: throws validation error with snapshot 1`] = `"BadRequestError: invalid access value: "invalid". parser: parser[0]"`;
 
+exports[`getEnvironment isolated scenarios given: invalid parser output when: filled() returns invalid commit then: throws validation error with snapshot 1`] = `"BadRequestError: invalid commit value: "invalid". parser: parser[0]"`;
+
 exports[`getEnvironment isolated scenarios given: invalid parser output when: static() returns invalid server then: throws validation error with snapshot 1`] = `"BadRequestError: invalid server value: "local". parser: parser[0]"`;
 
 exports[`getEnvironment isolated scenarios given: no signals when: filled() is called with empty parsers then: throws error with snapshot message 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
@@ -59,6 +61,10 @@ exports[`getEnvironment journey: custom parser configuration given: [case2] deve
 `;
 
 exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t5] factory parsers fail with named error messages then: error includes factory parser names 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: fromEnvar(NONEXISTENT_ACCESS), fromAwsAccountAlias, fromNodeEnv"`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t6] fromAwsAccountName factory used in parser chain then: error includes fromAwsAccountName parser name 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: fromEnvar(NONEXISTENT_ACCESS), fromAwsAccountAlias, fromAwsAccountName, fromNodeEnv"`;
+
+exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t7] alias returns null, name parser is fallback then: fallback chain includes both alias and name parsers 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: fromAwsAccountAlias, fromAwsAccountName"`;
 
 exports[`getEnvironment journey: developer integration workflow given: [case1] developer integrates sdk-environment when: [t0] app starts without environment configured then: filled() throws descriptive error 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
 

@@ -7,6 +7,7 @@ import type {
 } from './index';
 import {
   fromAwsAccountAlias,
+  fromAwsAccountName,
   fromEnvar,
   fromNodeEnv,
   getEnvironment,
@@ -166,6 +167,24 @@ describe('getEnvironment', () => {
                 access: [() => 'test'],
                 server: [() => 'local' as `local@${string}`], // bare local without platform
                 commit: [() => 'v1.0.0@abc123'],
+              },
+            });
+            fail('expected error');
+          } catch (error) {
+            expect((error as Error).message).toMatchSnapshot();
+          }
+        });
+      });
+
+      when('filled() returns invalid commit', () => {
+        then('throws validation error with snapshot', async () => {
+          try {
+            await getEnvironment.filled({
+              cache: 'skip',
+              parsers: {
+                access: [() => 'test'],
+                server: [() => 'local@unix'],
+                commit: [() => 'invalid' as `${string}@${string}`], // no @ separator
               },
             });
             fail('expected error');
@@ -461,6 +480,53 @@ describe('getEnvironment', () => {
             expect((error as Error).message).toMatchSnapshot();
           }
         });
+      });
+
+      when('[t6] fromAwsAccountName factory used in parser chain', () => {
+        then('error includes fromAwsAccountName parser name', async () => {
+          try {
+            await getEnvironment.filled({
+              cache: 'skip',
+              parsers: {
+                access: [
+                  fromEnvar<EnvironmentAccessTier>('NONEXISTENT_ACCESS'),
+                  fromAwsAccountAlias(),
+                  fromAwsAccountName(),
+                  fromNodeEnv(),
+                ],
+                server: [() => 'local@unix' as EnvironmentServerTier],
+                commit: [() => 'v1.0.0@abc123' as EnvironmentCommitSlug],
+              },
+            });
+            fail('expected error');
+          } catch (error) {
+            expect((error as Error).message).toMatchSnapshot();
+          }
+        });
+      });
+
+      when('[t7] alias returns null, name parser is fallback', () => {
+        then(
+          'fallback chain includes both alias and name parsers',
+          async () => {
+            try {
+              await getEnvironment.filled({
+                cache: 'skip',
+                parsers: {
+                  access: [
+                    fromAwsAccountAlias(), // returns null when no alias
+                    fromAwsAccountName(), // fallback to name parser
+                  ],
+                  server: [() => 'local@unix' as EnvironmentServerTier],
+                  commit: [() => 'v1.0.0@abc123' as EnvironmentCommitSlug],
+                },
+              });
+              fail('expected error');
+            } catch (error) {
+              expect((error as Error).message).toMatchSnapshot();
+            }
+          },
+        );
       });
     });
   });
