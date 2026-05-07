@@ -4,6 +4,7 @@ exports[`getEnvironment isolated scenarios given: detectable signals when: fille
 {
   "access": "prod",
   "commit": "v1.2.3@abc123",
+  "config": "prod",
   "server": "cloud@aws.lambda",
 }
 `;
@@ -12,6 +13,7 @@ exports[`getEnvironment isolated scenarios given: detectable signals when: getEn
 {
   "access": "prod",
   "commit": "v1.2.3@abc123",
+  "config": "prod",
   "server": "cloud@aws.lambda",
 }
 `;
@@ -20,6 +22,7 @@ exports[`getEnvironment isolated scenarios given: detectable signals when: stati
 {
   "access": "prod",
   "commit": "v1.2.3@abc123",
+  "config": "prod",
   "server": "cloud@aws.lambda",
 }
 `;
@@ -34,10 +37,85 @@ exports[`getEnvironment isolated scenarios given: no signals when: filled() is c
 
 exports[`getEnvironment isolated scenarios given: no signals when: static() is called with empty parsers then: throws error with snapshot message 1`] = `"UnexpectedCodePathError: could not derive access. tried parsers: parser[0]"`;
 
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t0] CONFIG envar is set then: config comes from CONFIG envar 1`] = `
+{
+  "access": "prep",
+  "commit": "main@abc123",
+  "config": "test",
+  "server": "local@unix",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t1] CONFIG envar with extended slug then: config includes extended slug 1`] = `
+{
+  "access": "prod",
+  "commit": "v1.0.0@abc123",
+  "config": "prod:v2023",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t2] prep access with NODE_ENV=test (no CONFIG) then: config defaults to test via NODE_ENV 1`] = `
+{
+  "access": "prep",
+  "commit": "ci@build123",
+  "config": "test",
+  "server": "local@cicd",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t3] prep access without CONFIG or NODE_ENV=test then: config defaults to access tier 1`] = `
+{
+  "access": "prep",
+  "commit": "deploy@xyz789",
+  "config": "prep",
+  "server": "cloud@aws.ecs",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t4] prod access always gets prod config then: config is prod regardless of NODE_ENV 1`] = `
+{
+  "access": "prod",
+  "commit": "v2.0.0@prod456",
+  "config": "prod",
+  "server": "cloud@aws.lambda",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t5] config/access mismatch error then: throws when prod access has test config 1`] = `
+"BadRequestError: config must start with 'prod' when access is 'prod'. got: "test"
+
+{
+  "access": "prod",
+  "config": "test"
+}"
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t6] custom config parser provided then: custom parser takes precedence 1`] = `
+{
+  "access": "prep",
+  "commit": "v1.0.0@abc123",
+  "config": "test:local",
+  "server": "local@unix",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t7] custom config parser with fromEnvar then: fromEnvar reads custom config envar 1`] = `
+{
+  "access": "prep",
+  "commit": "deploy@xyz789",
+  "config": "prep:canary",
+  "server": "cloud@aws.ecs",
+}
+`;
+
+exports[`getEnvironment journey: config attribute scenarios given: [case3] config attribute behavior when: [t8] invalid config value then: throws validation error 1`] = `"BadRequestError: invalid config value: "invalid". parser: parser[0]"`;
+
 exports[`getEnvironment journey: custom parser configuration given: [case2] developer uses custom parsers when: [t0] custom access parser provided then: custom parser runs instead of defaults 1`] = `
 {
   "access": "prep",
   "commit": "deploy@xyz789",
+  "config": "prep",
   "server": "cloud@aws.ecs",
 }
 `;
@@ -46,6 +124,7 @@ exports[`getEnvironment journey: custom parser configuration given: [case2] deve
 {
   "access": "test",
   "commit": "ci@build123",
+  "config": "test",
   "server": "local@cicd",
 }
 `;
@@ -56,6 +135,7 @@ exports[`getEnvironment journey: custom parser configuration given: [case2] deve
 {
   "access": "prod",
   "commit": "v3.0.0@custom123",
+  "config": "prod",
   "server": "cloud@aws.lambda",
 }
 `;
@@ -72,6 +152,7 @@ exports[`getEnvironment journey: developer integration workflow given: [case1] d
 {
   "access": "prod",
   "commit": "main@abc123",
+  "config": "prod",
   "server": "local@unix",
 }
 `;
@@ -80,6 +161,7 @@ exports[`getEnvironment journey: developer integration workflow given: [case1] d
 {
   "access": "prep",
   "commit": "feat/auth@def456",
+  "config": "prep",
   "server": "local@cicd",
 }
 `;
@@ -88,6 +170,7 @@ exports[`getEnvironment journey: developer integration workflow given: [case1] d
 {
   "access": "test",
   "commit": "main@ghi789",
+  "config": "test",
   "server": "local@unix",
 }
 `;

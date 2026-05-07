@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvConfigFromAccess returns prep for prep access 1`] = `"prep"`;
+
+exports[`getEnvConfigFromAccess returns prod for prod access 1`] = `"prod"`;
+
+exports[`getEnvConfigFromAccess returns test for test access 1`] = `"test"`;

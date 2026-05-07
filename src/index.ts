@@ -4,6 +4,7 @@
 export type { Environment } from './domain.objects/Environment';
 export type { EnvironmentAccessTier } from './domain.objects/EnvironmentAccessTier';
 export type { EnvironmentCommitSlug } from './domain.objects/EnvironmentCommitSlug';
+export type { EnvironmentConfigSlug } from './domain.objects/EnvironmentConfigSlug';
 export type { EnvironmentServerTier } from './domain.objects/EnvironmentServerTier';
 // parser types
 export type {

@@ -1,6 +1,10 @@
 import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
 
-const ACCESS_TIERS: readonly EnvironmentAccessTier[] = ['test', 'prep', 'prod'];
+export const ACCESS_TIERS: readonly EnvironmentAccessTier[] = [
+  'test',
+  'prep',
+  'prod',
+];
 
 /**
  * .what = type guard for EnvironmentAccessTier

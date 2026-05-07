@@ -1,5 +1,6 @@
 import type { EnvironmentAccessTier } from './EnvironmentAccessTier';
 import type { EnvironmentCommitSlug } from './EnvironmentCommitSlug';
+import type { EnvironmentConfigSlug } from './EnvironmentConfigSlug';
 import type { EnvironmentServerTier } from './EnvironmentServerTier';
 
 /**
@@ -11,6 +12,11 @@ export interface Environment {
    * which tier of resources this process can access
    */
   access: EnvironmentAccessTier;
+
+  /**
+   * which config/secrets to load
+   */
+  config: EnvironmentConfigSlug;
 
   /**
    * where this process executes

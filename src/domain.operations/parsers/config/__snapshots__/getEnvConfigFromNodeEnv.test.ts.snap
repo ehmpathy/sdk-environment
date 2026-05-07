@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvConfigFromNodeEnv prep access returns null when NODE_ENV is not set 1`] = `null`;
+
+exports[`getEnvConfigFromNodeEnv prep access returns null when NODE_ENV=production 1`] = `null`;
+
+exports[`getEnvConfigFromNodeEnv prep access returns test when NODE_ENV=test 1`] = `"test"`;
+
+exports[`getEnvConfigFromNodeEnv prod access returns null even when NODE_ENV=test 1`] = `null`;
+
+exports[`getEnvConfigFromNodeEnv test access returns null even when NODE_ENV=test 1`] = `null`;

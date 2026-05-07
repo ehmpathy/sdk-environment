@@ -3,6 +3,7 @@ import { given, then, when } from 'test-fns';
 import type {
   EnvironmentAccessTier,
   EnvironmentCommitSlug,
+  EnvironmentConfigSlug,
   EnvironmentServerTier,
 } from './index';
 import {
@@ -17,6 +18,7 @@ describe('getEnvironment', () => {
   // save and restore env
   const envBefore = {
     ACCESS: process.env.ACCESS,
+    CONFIG: process.env.CONFIG,
     SERVER: process.env.SERVER,
     COMMIT: process.env.COMMIT,
     NODE_ENV: process.env.NODE_ENV,
@@ -25,12 +27,14 @@ describe('getEnvironment', () => {
     XDG_SESSION_TYPE: process.env.XDG_SESSION_TYPE,
     TERM_PROGRAM: process.env.TERM_PROGRAM,
     MY_ACCESS: process.env.MY_ACCESS,
+    MY_CONFIG: process.env.MY_CONFIG,
     MY_SERVER: process.env.MY_SERVER,
     MY_COMMIT: process.env.MY_COMMIT,
   };
 
   const clearEnv = () => {
     delete process.env.ACCESS;
+    delete process.env.CONFIG;
     delete process.env.SERVER;
     delete process.env.COMMIT;
     delete process.env.NODE_ENV;
@@ -39,6 +43,7 @@ describe('getEnvironment', () => {
     delete process.env.XDG_SESSION_TYPE;
     delete process.env.TERM_PROGRAM;
     delete process.env.MY_ACCESS;
+    delete process.env.MY_CONFIG;
     delete process.env.MY_SERVER;
     delete process.env.MY_COMMIT;
   };
@@ -66,6 +71,7 @@ describe('getEnvironment', () => {
         then('returns Environment (README contract)', async () => {
           const result = await getEnvironment({ cache: 'skip' });
           expect(result.access).toBe('prod');
+          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -76,6 +82,7 @@ describe('getEnvironment', () => {
         then('returns Environment and matches snapshot', async () => {
           const result = await getEnvironment.filled({ cache: 'skip' });
           expect(result.access).toBe('prod');
+          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -86,6 +93,7 @@ describe('getEnvironment', () => {
         then('returns Environment and matches snapshot', () => {
           const result = getEnvironment.static({ cache: 'skip' });
           expect(result.access).toBe('prod');
+          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -527,6 +535,171 @@ describe('getEnvironment', () => {
             }
           },
         );
+      });
+    });
+  });
+
+  // journey test: config attribute scenarios
+  describe('journey: config attribute scenarios', () => {
+    given('[case3] config attribute behavior', () => {
+      beforeEach(() => {
+        clearEnv();
+      });
+
+      when('[t0] CONFIG envar is set', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prep';
+          process.env.CONFIG = 'test';
+          process.env.SERVER = 'local@unix';
+          process.env.COMMIT = 'main@abc123';
+        });
+
+        then('config comes from CONFIG envar', async () => {
+          const result = await getEnvironment.filled({ cache: 'skip' });
+          expect(result.access).toBe('prep');
+          expect(result.config).toBe('test');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] CONFIG envar with extended slug', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prod';
+          process.env.CONFIG = 'prod:v2023';
+          process.env.SERVER = 'cloud@aws.lambda';
+          process.env.COMMIT = 'v1.0.0@abc123';
+        });
+
+        then('config includes extended slug', async () => {
+          const result = await getEnvironment.filled({ cache: 'skip' });
+          expect(result.access).toBe('prod');
+          expect(result.config).toBe('prod:v2023');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t2] prep access with NODE_ENV=test (no CONFIG)', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prep';
+          process.env.NODE_ENV = 'test';
+          process.env.SERVER = 'local@cicd';
+          process.env.COMMIT = 'ci@build123';
+        });
+
+        then('config defaults to test via NODE_ENV', async () => {
+          const result = await getEnvironment.filled({ cache: 'skip' });
+          expect(result.access).toBe('prep');
+          expect(result.config).toBe('test');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] prep access without CONFIG or NODE_ENV=test', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prep';
+          process.env.NODE_ENV = 'production';
+          process.env.SERVER = 'cloud@aws.ecs';
+          process.env.COMMIT = 'deploy@xyz789';
+        });
+
+        then('config defaults to access tier', async () => {
+          const result = await getEnvironment.filled({ cache: 'skip' });
+          expect(result.access).toBe('prep');
+          expect(result.config).toBe('prep');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t4] prod access always gets prod config', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prod';
+          process.env.NODE_ENV = 'test'; // should be ignored for prod
+          process.env.SERVER = 'cloud@aws.lambda';
+          process.env.COMMIT = 'v2.0.0@prod456';
+        });
+
+        then('config is prod regardless of NODE_ENV', async () => {
+          const result = await getEnvironment.filled({ cache: 'skip' });
+          expect(result.access).toBe('prod');
+          expect(result.config).toBe('prod');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t5] config/access mismatch error', () => {
+        then('throws when prod access has test config', async () => {
+          try {
+            await getEnvironment.filled({
+              cache: 'skip',
+              parsers: {
+                access: [() => 'prod'],
+                config: [() => 'test'],
+                server: [() => 'cloud@aws.lambda'],
+                commit: [() => 'v1.0.0@abc123'],
+              },
+            });
+            fail('expected error');
+          } catch (error) {
+            expect((error as Error).message).toMatchSnapshot();
+          }
+        });
+      });
+
+      when('[t6] custom config parser provided', () => {
+        then('custom parser takes precedence', async () => {
+          const result = await getEnvironment.filled({
+            cache: 'skip',
+            parsers: {
+              access: [() => 'prep'],
+              config: [() => 'test:local' as EnvironmentConfigSlug],
+              server: [() => 'local@unix'],
+              commit: [() => 'v1.0.0@abc123'],
+            },
+          });
+          expect(result.access).toBe('prep');
+          expect(result.config).toBe('test:local');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t7] custom config parser with fromEnvar', () => {
+        beforeEach(() => {
+          process.env.MY_CONFIG = 'prep:canary';
+        });
+
+        then('fromEnvar reads custom config envar', async () => {
+          const result = await getEnvironment.filled({
+            cache: 'skip',
+            parsers: {
+              access: [() => 'prep'],
+              config: [fromEnvar<EnvironmentConfigSlug>('MY_CONFIG')],
+              server: [() => 'cloud@aws.ecs'],
+              commit: [() => 'deploy@xyz789'],
+            },
+          });
+          expect(result.access).toBe('prep');
+          expect(result.config).toBe('prep:canary');
+          expect(result).toMatchSnapshot();
+        });
+      });
+
+      when('[t8] invalid config value', () => {
+        then('throws validation error', async () => {
+          try {
+            await getEnvironment.filled({
+              cache: 'skip',
+              parsers: {
+                access: [() => 'prep'],
+                config: [() => 'invalid' as EnvironmentConfigSlug],
+                server: [() => 'local@unix'],
+                commit: [() => 'v1.0.0@abc123'],
+              },
+            });
+            fail('expected error');
+          } catch (error) {
+            expect((error as Error).message).toMatchSnapshot();
+          }
+        });
       });
     });
   });

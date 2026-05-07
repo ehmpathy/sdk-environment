@@ -53,6 +53,88 @@ describe('getEnvironment', () => {
           }),
         ).rejects.toThrow('invalid access value');
       });
+
+      test('config parser chain first non-null wins', async () => {
+        const result = await getEnvironment.filled({
+          cache: 'skip',
+          parsers: {
+            access: [() => 'prep'],
+            config: [() => null, () => 'test', () => 'prep'],
+            server: [() => 'local@unix'],
+            commit: [() => 'v1.0.0@abc123'],
+          },
+        });
+        expect(result.config).toBe('test');
+      });
+
+      test('config defaults via NODE_ENV when no custom parsers', async () => {
+        // .note = jest sets NODE_ENV=test, so default config parsers
+        //         return 'test' for prep access (per design: prep + NODE_ENV=test → test)
+        const result = await getEnvironment.filled({
+          cache: 'skip',
+          parsers: {
+            access: [() => 'prep'],
+            server: [() => 'local@unix'],
+            commit: [() => 'v1.0.0@abc123'],
+          },
+        });
+        expect(result.config).toBe('test');
+      });
+
+      test('throws on invalid config value', async () => {
+        await expect(
+          getEnvironment.filled({
+            cache: 'skip',
+            parsers: {
+              access: [() => 'prep'],
+              config: [() => 'invalid' as 'test'],
+              server: [() => 'local@unix'],
+              commit: [() => 'v1.0.0@abc123'],
+            },
+          }),
+        ).rejects.toThrow('invalid config value');
+      });
+
+      test('throws on config/access mismatch for prod', async () => {
+        await expect(
+          getEnvironment.filled({
+            cache: 'skip',
+            parsers: {
+              access: [() => 'prod'],
+              config: [() => 'test'],
+              server: [() => 'local@unix'],
+              commit: [() => 'v1.0.0@abc123'],
+            },
+          }),
+        ).rejects.toThrow("config must start with 'prod'");
+      });
+
+      test('throws on config/access mismatch for test', async () => {
+        await expect(
+          getEnvironment.filled({
+            cache: 'skip',
+            parsers: {
+              access: [() => 'test'],
+              config: [() => 'prep'],
+              server: [() => 'local@unix'],
+              commit: [() => 'v1.0.0@abc123'],
+            },
+          }),
+        ).rejects.toThrow("config must start with 'test'");
+      });
+
+      test('prep access allows any config', async () => {
+        const result = await getEnvironment.filled({
+          cache: 'skip',
+          parsers: {
+            access: [() => 'prep'],
+            config: [() => 'test'],
+            server: [() => 'local@unix'],
+            commit: [() => 'v1.0.0@abc123'],
+          },
+        });
+        expect(result.config).toBe('test');
+      });
     });
 
     describe('cache', () => {

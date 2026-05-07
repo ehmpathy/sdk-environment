@@ -32,6 +32,7 @@ describe('getEnvironment', () => {
           const result = await getEnvironment.filled({ cache: 'skip' });
           expect(result).toEqual({
             access: 'test',
+            config: 'test',
             server: 'local@unix',
             commit: 'v1.0.0@abc123',
           });
@@ -183,6 +184,7 @@ describe('getEnvironment', () => {
           const result = getEnvironment.static({ cache: 'skip' });
           expect(result).toEqual({
             access: 'prod',
+            config: 'prod',
             server: 'cloud@aws.lambda',
             commit: 'main@def456',
           });

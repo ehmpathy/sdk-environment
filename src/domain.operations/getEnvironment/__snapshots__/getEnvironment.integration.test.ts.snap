@@ -16,6 +16,7 @@ exports[`getEnvironment filled given: runtime with detectable signals when: fill
 {
   "access": "test",
   "commit": "v1.0.0@abc123",
+  "config": "test",
   "server": "local@unix",
 }
 `;
@@ -36,6 +37,7 @@ exports[`getEnvironment static given: runtime with detectable signals when: stat
 {
   "access": "prod",
   "commit": "main@def456",
+  "config": "prod",
   "server": "cloud@aws.lambda",
 }
 `;
