@@ -3,13 +3,17 @@ import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
 import type { Environment } from '../../domain.objects/Environment';
 import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
 import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
 import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
 import { getEnvAccess } from '../parsers/access/getEnvAccess';
 import { getEnvCommit } from '../parsers/commit/getEnvCommit';
+import { getEnvConfig } from '../parsers/config/getEnvConfig';
 import { getEnvServer } from '../parsers/server/getEnvServer';
 import { isEnvironmentAccessTier } from '../validators/isEnvironmentAccessTier';
 import { isEnvironmentCommitSlug } from '../validators/isEnvironmentCommitSlug';
+import { isEnvironmentConfigSlug } from '../validators/isEnvironmentConfigSlug';
 import { isEnvironmentServerTier } from '../validators/isEnvironmentServerTier';
+import { isValidConfigForAccess } from '../validators/isValidConfigForAccess';
 
 /**
  * .what = parser function type
@@ -31,6 +35,7 @@ export type Parser<T> = () => T | null | Promise<T | null>;
 interface GetEnvironmentInput {
   parsers?: {
     access?: AsyncParser<EnvironmentAccessTier>[];
+    config?: AsyncParser<EnvironmentConfigSlug>[];
     server?: AsyncParser<EnvironmentServerTier>[];
     commit?: AsyncParser<EnvironmentCommitSlug>[];
   };
@@ -44,6 +49,7 @@ interface GetEnvironmentInput {
 interface GetEnvironmentStaticInput {
   parsers?: {
     access?: SyncParser<EnvironmentAccessTier>[];
+    config?: SyncParser<EnvironmentConfigSlug>[];
     server?: SyncParser<EnvironmentServerTier>[];
     commit?: SyncParser<EnvironmentCommitSlug>[];
   };
@@ -68,6 +74,14 @@ const DEFAULT_SERVER_PARSERS: SyncParser<EnvironmentServerTier>[] = [
 const DEFAULT_COMMIT_PARSERS: AsyncParser<EnvironmentCommitSlug>[] = [
   getEnvCommit.fromEnvar,
   getEnvCommit.fromGit,
+];
+
+const DEFAULT_CONFIG_PARSERS = (input: {
+  access: EnvironmentAccessTier;
+}): SyncParser<EnvironmentConfigSlug>[] => [
+  getEnvConfig.fromEnvar,
+  getEnvConfig.fromNodeEnv(input.access),
+  getEnvConfig.fromAccess(input.access),
 ];
 
 // sync-only default parsers (skip async)
@@ -166,6 +180,22 @@ const filled = async (input?: GetEnvironmentInput): Promise<Environment> => {
     isEnvironmentAccessTier,
     'access',
   );
+
+  const configParsers =
+    input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS({ access });
+  const configParserNames = configParsers.map(
+    (p, i) => p.name || `parser[${i}]`,
+  );
+  const config = await runParsers(
+    configParsers,
+    configParserNames,
+    isEnvironmentConfigSlug,
+    'config',
+  );
+
+  // validate config against access constraints
+  isValidConfigForAccess({ config, access });
+
   const server = await runParsers(
     serverParsers,
     serverParserNames,
@@ -179,7 +209,7 @@ const filled = async (input?: GetEnvironmentInput): Promise<Environment> => {
     'commit',
   );
 
-  const environment: Environment = { access, server, commit };
+  const environment: Environment = { access, config, server, commit };
   filledCache = environment;
   return environment;
 };
@@ -212,6 +242,22 @@ const staticEnv = (input?: GetEnvironmentStaticInput): Environment => {
     isEnvironmentAccessTier,
     'access',
   );
+
+  const configParsers =
+    input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS({ access });
+  const configParserNames = configParsers.map(
+    (p, i) => p.name || `parser[${i}]`,
+  );
+  const config = runParsersSync(
+    configParsers,
+    configParserNames,
+    isEnvironmentConfigSlug,
+    'config',
+  );
+
+  // validate config against access constraints
+  isValidConfigForAccess({ config, access });
+
   const server = runParsersSync(
     serverParsers,
     serverParserNames,
@@ -225,7 +271,7 @@ const staticEnv = (input?: GetEnvironmentStaticInput): Environment => {
     'commit',
   );
 
-  const environment: Environment = { access, server, commit };
+  const environment: Environment = { access, config, server, commit };
   staticCache = environment;
   return environment;
 };

@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvConfigFromEnvar negative cases returns null when CONFIG is empty string 1`] = `null`;
+
+exports[`getEnvConfigFromEnvar negative cases returns null when CONFIG is invalid 1`] = `null`;
+
+exports[`getEnvConfigFromEnvar negative cases returns null when CONFIG is not set 1`] = `null`;
+
+exports[`getEnvConfigFromEnvar positive cases returns value when CONFIG is set to extended slug 1`] = `"prod:v2023"`;
+
+exports[`getEnvConfigFromEnvar positive cases returns value when CONFIG is set to prep 1`] = `"prep"`;
+
+exports[`getEnvConfigFromEnvar positive cases returns value when CONFIG is set to prod 1`] = `"prod"`;
+
+exports[`getEnvConfigFromEnvar positive cases returns value when CONFIG is set to test 1`] = `"test"`;
