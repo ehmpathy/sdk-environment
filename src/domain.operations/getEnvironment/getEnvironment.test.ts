@@ -1,3 +1,6 @@
+import { createCache } from 'simple-in-memory-cache';
+
+import type { Environment } from '../../domain.objects/Environment';
 import { getEnvironment } from './getEnvironment';
 
 describe('getEnvironment', () => {
@@ -261,7 +264,7 @@ describe('getEnvironment', () => {
         expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
 
-      test('cache skip forces fresh parse even when cache is populated', () => {
+      test('cache skip forces fresh parse', () => {
         let callCount = 0;
         const accessParser = (): 'test' => {
           callCount++;
@@ -273,17 +276,18 @@ describe('getEnvironment', () => {
           commit: [() => 'v1.0.0@abc123'],
         };
 
-        // first call with skip populates cache
-        getEnvironment.static({ cache: 'skip', parsers });
+        // use isolated cache to avoid pollution from other tests
+        const cache = createCache<Environment>();
+        expect(cache.keys()).toEqual([]); // cache starts empty
+
+        // first call populates cache
+        getEnvironment.static({ cache, parsers });
         expect(callCount).toBe(1);
+        expect(cache.keys()).toEqual(['static']); // cache now has entry
 
-        // second call WITHOUT skip uses cache (no parser call)
-        getEnvironment.static({ parsers });
-        expect(callCount).toBe(1); // still 1, cache hit
-
-        // third call with skip forces fresh parse
+        // second call with skip forces fresh parse (bypasses cache read)
         getEnvironment.static({ cache: 'skip', parsers });
-        expect(callCount).toBe(2); // incremented, cache bypassed
+        expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
     });
   });
