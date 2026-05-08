@@ -1,19 +1,17 @@
 import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
+import { createCache, type SimpleInMemoryCache } from 'simple-in-memory-cache';
+import { withSimpleCache } from 'with-simple-cache';
 
 import type { Environment } from '../../domain.objects/Environment';
 import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
 import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
 import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
 import { getEnvAccess } from '../parsers/access/getEnvAccess';
 import { getEnvCommit } from '../parsers/commit/getEnvCommit';
-import { getEnvConfig } from '../parsers/config/getEnvConfig';
 import { getEnvServer } from '../parsers/server/getEnvServer';
 import { isEnvironmentAccessTier } from '../validators/isEnvironmentAccessTier';
 import { isEnvironmentCommitSlug } from '../validators/isEnvironmentCommitSlug';
-import { isEnvironmentConfigSlug } from '../validators/isEnvironmentConfigSlug';
 import { isEnvironmentServerTier } from '../validators/isEnvironmentServerTier';
-import { isValidConfigForAccess } from '../validators/isValidConfigForAccess';
 
 /**
  * .what = parser function type
@@ -29,32 +27,33 @@ export type AsyncParser<T> = () => T | null | Promise<T | null>;
 export type Parser<T> = () => T | null | Promise<T | null>;
 
 /**
- * .what = input for getEnvironment methods
- * .why = allows custom parsers and cache control
+ * .what = compute display name for a parser function
+ * .why = use function.name if available, fallback to index-based name
  */
-interface GetEnvironmentInput {
-  parsers?: {
-    access?: AsyncParser<EnvironmentAccessTier>[];
-    config?: AsyncParser<EnvironmentConfigSlug>[];
-    server?: AsyncParser<EnvironmentServerTier>[];
-    commit?: AsyncParser<EnvironmentCommitSlug>[];
-  };
-  cache?: 'skip';
-}
+const computeParserName = (input: {
+  parser: () => unknown;
+  index: number;
+}): string => input.parser.name || `parser[${input.index}]`;
 
 /**
- * .what = input for getEnvironment.static
- * .why = sync parsers only
+ * .what = pair parsers with their display names
+ * .why = enables iteration without positional array access
  */
-interface GetEnvironmentStaticInput {
-  parsers?: {
-    access?: SyncParser<EnvironmentAccessTier>[];
-    config?: SyncParser<EnvironmentConfigSlug>[];
-    server?: SyncParser<EnvironmentServerTier>[];
-    commit?: SyncParser<EnvironmentCommitSlug>[];
-  };
-  cache?: 'skip';
-}
+const asParsersNamed = <T>(
+  parsers: Array<() => T>,
+): Array<{ parser: () => T; name: string }> =>
+  parsers.map((parser, index) => ({
+    parser,
+    name: computeParserName({ parser, index }),
+  }));
+
+/**
+ * .what = extract names from named parsers
+ * .why = format parser names for error messages
+ */
+const asParserNames = <T>(
+  parsers: Array<{ parser: () => T; name: string }>,
+): string[] => parsers.map((p) => p.name);
 
 // default parsers
 const DEFAULT_ACCESS_PARSERS: AsyncParser<EnvironmentAccessTier>[] = [
@@ -76,14 +75,6 @@ const DEFAULT_COMMIT_PARSERS: AsyncParser<EnvironmentCommitSlug>[] = [
   getEnvCommit.fromGit,
 ];
 
-const DEFAULT_CONFIG_PARSERS = (input: {
-  access: EnvironmentAccessTier;
-}): SyncParser<EnvironmentConfigSlug>[] => [
-  getEnvConfig.fromEnvar,
-  getEnvConfig.fromNodeEnv(input.access),
-  getEnvConfig.fromAccess(input.access),
-];
-
 // sync-only default parsers (skip async)
 const DEFAULT_ACCESS_PARSERS_SYNC: SyncParser<EnvironmentAccessTier>[] = [
   getEnvAccess.fromEnvar,
@@ -92,36 +83,49 @@ const DEFAULT_ACCESS_PARSERS_SYNC: SyncParser<EnvironmentAccessTier>[] = [
 
 const DEFAULT_COMMIT_PARSERS_SYNC: SyncParser<EnvironmentCommitSlug>[] = [
   getEnvCommit.fromEnvar,
+  getEnvCommit.fromGit.sync,
 ];
 
-// cache
-let filledCache: Environment | null = null;
-let staticCache: Environment | null = null;
+/**
+ * .what = module-level default caches for environment results
+ * .why = avoid repeated parser invocations within same process
+ *        callers can supply their own cache to override
+ */
+const defaultFilledCache = createCache<Promise<Environment>>();
+const defaultStaticCache = createCache<Environment>();
+
+/**
+ * .what = create cache that skips reads but writes to target
+ * .why = used when callers pass 'skip' to bypass cache lookup
+ *        but still populate cache for subsequent calls
+ */
+const createCacheSkipRead = <T>(target: SimpleInMemoryCache<T>) => ({
+  get: () => undefined,
+  set: (key: string, value: T) => target.set(key, value),
+});
 
 /**
  * .what = run parser chain until first non-null result
  * .why = first-wins precedence
  */
-const runParsers = async <T>(
-  parsers: AsyncParser<T>[],
-  parserNames: string[],
+const getOneFromParsersAsync = async <T>(
+  parsers: Array<{ parser: AsyncParser<T>; name: string }>,
   validate: (value: unknown) => value is T,
   attributeName: string,
 ): Promise<T> => {
-  for (let i = 0; i < parsers.length; i++) {
-    const parser = parsers[i]!;
+  for (const { parser, name } of parsers) {
     const result = await parser();
     if (result !== null) {
       if (!validate(result)) {
         throw new BadRequestError(
-          `invalid ${attributeName} value: ${JSON.stringify(result)}. parser: ${parserNames[i]}`,
+          `invalid ${attributeName} value: ${JSON.stringify(result)}. parser: ${name}`,
         );
       }
       return result;
     }
   }
   throw new UnexpectedCodePathError(
-    `could not derive ${attributeName}. tried parsers: ${parserNames.join(', ')}`,
+    `could not derive ${attributeName}. tried parsers: ${asParserNames(parsers).join(', ')}`,
   );
 };
 
@@ -129,166 +133,168 @@ const runParsers = async <T>(
  * .what = run sync parser chain until first non-null result
  * .why = first-wins precedence, sync only
  */
-const runParsersSync = <T>(
-  parsers: SyncParser<T>[],
-  parserNames: string[],
+const getOneFromParsersSync = <T>(
+  parsers: Array<{ parser: SyncParser<T>; name: string }>,
   validate: (value: unknown) => value is T,
   attributeName: string,
 ): T => {
-  for (let i = 0; i < parsers.length; i++) {
-    const parser = parsers[i]!;
+  for (const { parser, name } of parsers) {
     const result = parser();
     if (result !== null) {
       if (!validate(result)) {
         throw new BadRequestError(
-          `invalid ${attributeName} value: ${JSON.stringify(result)}. parser: ${parserNames[i]}`,
+          `invalid ${attributeName} value: ${JSON.stringify(result)}. parser: ${name}`,
         );
       }
       return result;
     }
   }
   throw new UnexpectedCodePathError(
-    `could not derive ${attributeName}. tried parsers: ${parserNames.join(', ')}`,
+    `could not derive ${attributeName}. tried parsers: ${asParserNames(parsers).join(', ')}`,
   );
+};
+
+/**
+ * .what = internal async environment parser
+ * .why = separated to enable cache wrapper
+ */
+const computeFilledEnvironment = async (input: {
+  accessParsers: AsyncParser<EnvironmentAccessTier>[];
+  serverParsers: AsyncParser<EnvironmentServerTier>[];
+  commitParsers: AsyncParser<EnvironmentCommitSlug>[];
+}): Promise<Environment> => {
+  const access = await getOneFromParsersAsync(
+    asParsersNamed(input.accessParsers),
+    isEnvironmentAccessTier,
+    'access',
+  );
+  const server = await getOneFromParsersAsync(
+    asParsersNamed(input.serverParsers),
+    isEnvironmentServerTier,
+    'server',
+  );
+  const commit = await getOneFromParsersAsync(
+    asParsersNamed(input.commitParsers),
+    isEnvironmentCommitSlug,
+    'commit',
+  );
+
+  return { access, server, commit };
 };
 
 /**
  * .what = async environment parser - runs all parsers with aws and git
  * .why = complete environment detection with full parser chain
  */
-const filled = async (input?: GetEnvironmentInput): Promise<Environment> => {
-  // check cache
-  if (input?.cache !== 'skip' && filledCache) return filledCache;
+const _filled = async (
+  input?: {
+    parsers?: {
+      access?: AsyncParser<EnvironmentAccessTier>[] | null;
+      server?: AsyncParser<EnvironmentServerTier>[] | null;
+      commit?: AsyncParser<EnvironmentCommitSlug>[] | null;
+    } | null;
+    cache?: SimpleInMemoryCache<Promise<Environment>> | 'skip' | null;
+  } | null,
+): Promise<Environment> => {
+  const config = {
+    accessParsers: input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS,
+    serverParsers: input?.parsers?.server ?? DEFAULT_SERVER_PARSERS,
+    commitParsers: input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS,
+  };
+  return computeFilledEnvironment(config);
+};
 
-  const accessParsers = input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS;
-  const serverParsers = input?.parsers?.server ?? DEFAULT_SERVER_PARSERS;
-  const commitParsers = input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS;
+/**
+ * .what = cached version of _filled
+ * .why = avoid repeated parser invocations
+ * .note = callers can supply their own cache via input
+ */
+const filled = withSimpleCache(_filled, {
+  cache: ({ fromInput }) => {
+    const inputCache = fromInput[0]?.cache;
+    if (inputCache === 'skip') return createCacheSkipRead(defaultFilledCache);
+    return inputCache ?? defaultFilledCache;
+  },
+  serialize: { key: () => 'filled' },
+});
 
-  const accessParserNames = accessParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const serverParserNames = serverParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const commitParserNames = commitParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-
-  const access = await runParsers(
-    accessParsers,
-    accessParserNames,
+/**
+ * .what = internal sync environment parser
+ * .why = separated to enable cache wrapper
+ */
+const computeStaticEnvironment = (input: {
+  accessParsers: SyncParser<EnvironmentAccessTier>[];
+  serverParsers: SyncParser<EnvironmentServerTier>[];
+  commitParsers: SyncParser<EnvironmentCommitSlug>[];
+}): Environment => {
+  const access = getOneFromParsersSync(
+    asParsersNamed(input.accessParsers),
     isEnvironmentAccessTier,
     'access',
   );
-
-  const configParsers =
-    input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS({ access });
-  const configParserNames = configParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const config = await runParsers(
-    configParsers,
-    configParserNames,
-    isEnvironmentConfigSlug,
-    'config',
-  );
-
-  // validate config against access constraints
-  isValidConfigForAccess({ config, access });
-
-  const server = await runParsers(
-    serverParsers,
-    serverParserNames,
+  const server = getOneFromParsersSync(
+    asParsersNamed(input.serverParsers),
     isEnvironmentServerTier,
     'server',
   );
-  const commit = await runParsers(
-    commitParsers,
-    commitParserNames,
+  const commit = getOneFromParsersSync(
+    asParsersNamed(input.commitParsers),
     isEnvironmentCommitSlug,
     'commit',
   );
 
-  const environment: Environment = { access, config, server, commit };
-  filledCache = environment;
-  return environment;
+  return { access, server, commit };
 };
 
 /**
  * .what = sync environment parser - skips async parsers
  * .why = sync access without await for contexts that need it
  */
-const staticEnv = (input?: GetEnvironmentStaticInput): Environment => {
-  // check cache
-  if (input?.cache !== 'skip' && staticCache) return staticCache;
-
-  const accessParsers = input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS_SYNC;
-  const serverParsers = input?.parsers?.server ?? DEFAULT_SERVER_PARSERS;
-  const commitParsers = input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS_SYNC;
-
-  const accessParserNames = accessParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const serverParserNames = serverParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const commitParserNames = commitParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-
-  const access = runParsersSync(
-    accessParsers,
-    accessParserNames,
-    isEnvironmentAccessTier,
-    'access',
-  );
-
-  const configParsers =
-    input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS({ access });
-  const configParserNames = configParsers.map(
-    (p, i) => p.name || `parser[${i}]`,
-  );
-  const config = runParsersSync(
-    configParsers,
-    configParserNames,
-    isEnvironmentConfigSlug,
-    'config',
-  );
-
-  // validate config against access constraints
-  isValidConfigForAccess({ config, access });
-
-  const server = runParsersSync(
-    serverParsers,
-    serverParserNames,
-    isEnvironmentServerTier,
-    'server',
-  );
-  const commit = runParsersSync(
-    commitParsers,
-    commitParserNames,
-    isEnvironmentCommitSlug,
-    'commit',
-  );
-
-  const environment: Environment = { access, config, server, commit };
-  staticCache = environment;
-  return environment;
+const _staticEnv = (
+  input?: {
+    parsers?: {
+      access?: SyncParser<EnvironmentAccessTier>[] | null;
+      server?: SyncParser<EnvironmentServerTier>[] | null;
+      commit?: SyncParser<EnvironmentCommitSlug>[] | null;
+    } | null;
+    cache?: SimpleInMemoryCache<Environment> | 'skip' | null;
+  } | null,
+): Environment => {
+  const config = {
+    accessParsers: input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS_SYNC,
+    serverParsers: input?.parsers?.server ?? DEFAULT_SERVER_PARSERS,
+    commitParsers: input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS_SYNC,
+  };
+  return computeStaticEnvironment(config);
 };
+
+/**
+ * .what = cached version of _staticEnv
+ * .why = avoid repeated parser invocations
+ * .note = callers can supply their own cache via input
+ */
+const staticEnv = withSimpleCache(_staticEnv, {
+  cache: ({ fromInput }) => {
+    const inputCache = fromInput[0]?.cache;
+    if (inputCache === 'skip') return createCacheSkipRead(defaultStaticCache);
+    return inputCache ?? defaultStaticCache;
+  },
+  serialize: { key: () => 'static' },
+});
 
 /**
  * .what = get environment - callable directly or via .filled()/.static()
  * .why = main entry point for sdk-environment
  */
 interface GetEnvironment {
-  (input?: GetEnvironmentInput): Promise<Environment>;
+  (input?: Parameters<typeof filled>[0]): Promise<Environment>;
   filled: typeof filled;
   static: typeof staticEnv;
 }
 
 const getEnvironmentFn: GetEnvironment = Object.assign(
   // direct call delegates to filled
-  (input?: GetEnvironmentInput): Promise<Environment> => filled(input),
+  (input?: Parameters<typeof filled>[0]): Promise<Environment> => filled(input),
   {
     /**
      * async, runs all parsers (aws and git), cached

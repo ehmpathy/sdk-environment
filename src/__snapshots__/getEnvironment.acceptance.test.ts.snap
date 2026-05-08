@@ -174,3 +174,19 @@ exports[`getEnvironment journey: developer integration workflow given: [case1] d
   "server": "local@unix",
 }
 `;
+
+exports[`getEnvironment journey: static() with git commit detection given: [case3] static() in git repository with defaults when: [t0] static() is called then: commit is detected from git 1`] = `
+{
+  "access": "test",
+  "commit": "v0.1.1@<hash>",
+  "server": "local@unix",
+}
+`;
+
+exports[`getEnvironment journey: static() with git commit detection given: [case3] static() in git repository with defaults when: [t1] COMMIT envar is set then: envar takes precedence over git 1`] = `
+{
+  "access": "test",
+  "commit": "v1.0.0@override",
+  "server": "local@unix",
+}
+`;
