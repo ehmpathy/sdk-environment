@@ -176,7 +176,9 @@ const getOneFromParsersSync = <T>(
  */
 const computeFilledEnvironment = async (input: {
   accessParsers: AsyncParser<EnvironmentAccessTier>[];
-  configParsersFactory: (access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[];
+  configParsersFactory: (
+    access: EnvironmentAccessTier,
+  ) => SyncParser<EnvironmentConfigSlug>[];
   serverParsers: AsyncParser<EnvironmentServerTier>[];
   commitParsers: AsyncParser<EnvironmentCommitSlug>[];
 }): Promise<Environment> => {
@@ -217,7 +219,11 @@ const _filled = async (
   input?: {
     parsers?: {
       access?: AsyncParser<EnvironmentAccessTier>[] | null;
-      config?: ((access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[]) | null;
+      config?:
+        | ((
+            access: EnvironmentAccessTier,
+          ) => SyncParser<EnvironmentConfigSlug>[])
+        | null;
       server?: AsyncParser<EnvironmentServerTier>[] | null;
       commit?: AsyncParser<EnvironmentCommitSlug>[] | null;
     } | null;
@@ -253,7 +259,9 @@ const filled = withSimpleCache(_filled, {
  */
 const computeStaticEnvironment = (input: {
   accessParsers: SyncParser<EnvironmentAccessTier>[];
-  configParsersFactory: (access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[];
+  configParsersFactory: (
+    access: EnvironmentAccessTier,
+  ) => SyncParser<EnvironmentConfigSlug>[];
   serverParsers: SyncParser<EnvironmentServerTier>[];
   commitParsers: SyncParser<EnvironmentCommitSlug>[];
 }): Environment => {
@@ -294,7 +302,11 @@ const _staticEnv = (
   input?: {
     parsers?: {
       access?: SyncParser<EnvironmentAccessTier>[] | null;
-      config?: ((access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[]) | null;
+      config?:
+        | ((
+            access: EnvironmentAccessTier,
+          ) => SyncParser<EnvironmentConfigSlug>[])
+        | null;
       server?: SyncParser<EnvironmentServerTier>[] | null;
       commit?: SyncParser<EnvironmentCommitSlug>[] | null;
     } | null;

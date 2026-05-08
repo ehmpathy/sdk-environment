@@ -261,16 +261,29 @@ describe('getEnvironment', () => {
         expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
 
-      test('cache skip forces fresh parse', () => {
-        // first call populates cache
-        const result1 = getEnvironment.static();
+      test('cache skip forces fresh parse even when cache is populated', () => {
+        let callCount = 0;
+        const accessParser = (): 'test' => {
+          callCount++;
+          return 'test';
+        };
+        const parsers = {
+          access: [accessParser],
+          server: [() => 'local@unix'],
+          commit: [() => 'v1.0.0@abc123'],
+        };
 
-        // second call with skip forces fresh parse but populates cache
-        const result2 = getEnvironment.static({ cache: 'skip' });
+        // first call with skip populates cache
+        getEnvironment.static({ cache: 'skip', parsers });
+        expect(callCount).toBe(1);
 
-        // results should be equivalent (same default parsers)
-        expect(result1.access).toBe(result2.access);
-        expect(result1.server).toBe(result2.server);
+        // second call WITHOUT skip uses cache (no parser call)
+        getEnvironment.static({ parsers });
+        expect(callCount).toBe(1); // still 1, cache hit
+
+        // third call with skip forces fresh parse
+        getEnvironment.static({ cache: 'skip', parsers });
+        expect(callCount).toBe(2); // incremented, cache bypassed
       });
     });
   });
