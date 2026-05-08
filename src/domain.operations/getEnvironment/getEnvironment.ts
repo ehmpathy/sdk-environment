@@ -5,13 +5,17 @@ import { withSimpleCache } from 'with-simple-cache';
 import type { Environment } from '../../domain.objects/Environment';
 import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
 import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
 import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
 import { getEnvAccess } from '../parsers/access/getEnvAccess';
 import { getEnvCommit } from '../parsers/commit/getEnvCommit';
+import { getEnvConfig } from '../parsers/config/getEnvConfig';
 import { getEnvServer } from '../parsers/server/getEnvServer';
 import { isEnvironmentAccessTier } from '../validators/isEnvironmentAccessTier';
 import { isEnvironmentCommitSlug } from '../validators/isEnvironmentCommitSlug';
+import { isEnvironmentConfigSlug } from '../validators/isEnvironmentConfigSlug';
 import { isEnvironmentServerTier } from '../validators/isEnvironmentServerTier';
+import { isValidConfigForAccess } from '../validators/isValidConfigForAccess';
 
 /**
  * .what = parser function type
@@ -73,6 +77,18 @@ const DEFAULT_SERVER_PARSERS: SyncParser<EnvironmentServerTier>[] = [
 const DEFAULT_COMMIT_PARSERS: AsyncParser<EnvironmentCommitSlug>[] = [
   getEnvCommit.fromEnvar,
   getEnvCommit.fromGit,
+];
+
+/**
+ * .what = default config parsers factory
+ * .why = config parsers depend on access tier
+ */
+const DEFAULT_CONFIG_PARSERS = (
+  access: EnvironmentAccessTier,
+): SyncParser<EnvironmentConfigSlug>[] => [
+  getEnvConfig.fromEnvar,
+  getEnvConfig.fromNodeEnv(access),
+  getEnvConfig.fromAccess(access),
 ];
 
 // sync-only default parsers (skip async)
@@ -160,6 +176,7 @@ const getOneFromParsersSync = <T>(
  */
 const computeFilledEnvironment = async (input: {
   accessParsers: AsyncParser<EnvironmentAccessTier>[];
+  configParsersFactory: (access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[];
   serverParsers: AsyncParser<EnvironmentServerTier>[];
   commitParsers: AsyncParser<EnvironmentCommitSlug>[];
 }): Promise<Environment> => {
@@ -168,6 +185,16 @@ const computeFilledEnvironment = async (input: {
     isEnvironmentAccessTier,
     'access',
   );
+
+  // config depends on access
+  const configParsers = input.configParsersFactory(access);
+  const config = getOneFromParsersSync(
+    asParsersNamed(configParsers),
+    isEnvironmentConfigSlug,
+    'config',
+  );
+  isValidConfigForAccess({ config, access });
+
   const server = await getOneFromParsersAsync(
     asParsersNamed(input.serverParsers),
     isEnvironmentServerTier,
@@ -179,7 +206,7 @@ const computeFilledEnvironment = async (input: {
     'commit',
   );
 
-  return { access, server, commit };
+  return { access, config, server, commit };
 };
 
 /**
@@ -190,18 +217,20 @@ const _filled = async (
   input?: {
     parsers?: {
       access?: AsyncParser<EnvironmentAccessTier>[] | null;
+      config?: ((access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[]) | null;
       server?: AsyncParser<EnvironmentServerTier>[] | null;
       commit?: AsyncParser<EnvironmentCommitSlug>[] | null;
     } | null;
     cache?: SimpleInMemoryCache<Promise<Environment>> | 'skip' | null;
   } | null,
 ): Promise<Environment> => {
-  const config = {
+  const parsersConfig = {
     accessParsers: input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS,
+    configParsersFactory: input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS,
     serverParsers: input?.parsers?.server ?? DEFAULT_SERVER_PARSERS,
     commitParsers: input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS,
   };
-  return computeFilledEnvironment(config);
+  return computeFilledEnvironment(parsersConfig);
 };
 
 /**
@@ -224,6 +253,7 @@ const filled = withSimpleCache(_filled, {
  */
 const computeStaticEnvironment = (input: {
   accessParsers: SyncParser<EnvironmentAccessTier>[];
+  configParsersFactory: (access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[];
   serverParsers: SyncParser<EnvironmentServerTier>[];
   commitParsers: SyncParser<EnvironmentCommitSlug>[];
 }): Environment => {
@@ -232,6 +262,16 @@ const computeStaticEnvironment = (input: {
     isEnvironmentAccessTier,
     'access',
   );
+
+  // config depends on access
+  const configParsers = input.configParsersFactory(access);
+  const config = getOneFromParsersSync(
+    asParsersNamed(configParsers),
+    isEnvironmentConfigSlug,
+    'config',
+  );
+  isValidConfigForAccess({ config, access });
+
   const server = getOneFromParsersSync(
     asParsersNamed(input.serverParsers),
     isEnvironmentServerTier,
@@ -243,7 +283,7 @@ const computeStaticEnvironment = (input: {
     'commit',
   );
 
-  return { access, server, commit };
+  return { access, config, server, commit };
 };
 
 /**
@@ -254,18 +294,20 @@ const _staticEnv = (
   input?: {
     parsers?: {
       access?: SyncParser<EnvironmentAccessTier>[] | null;
+      config?: ((access: EnvironmentAccessTier) => SyncParser<EnvironmentConfigSlug>[]) | null;
       server?: SyncParser<EnvironmentServerTier>[] | null;
       commit?: SyncParser<EnvironmentCommitSlug>[] | null;
     } | null;
     cache?: SimpleInMemoryCache<Environment> | 'skip' | null;
   } | null,
 ): Environment => {
-  const config = {
+  const parsersConfig = {
     accessParsers: input?.parsers?.access ?? DEFAULT_ACCESS_PARSERS_SYNC,
+    configParsersFactory: input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS,
     serverParsers: input?.parsers?.server ?? DEFAULT_SERVER_PARSERS,
     commitParsers: input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS_SYNC,
   };
-  return computeStaticEnvironment(config);
+  return computeStaticEnvironment(parsersConfig);
 };
 
 /**

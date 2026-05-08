@@ -59,7 +59,7 @@ describe('getEnvironment', () => {
           cache: 'skip',
           parsers: {
             access: [() => 'prep'],
-            config: [() => null, () => 'test', () => 'prep'],
+            config: () => [() => null, () => 'test', () => 'prep'],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
@@ -87,7 +87,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'prep'],
-              config: [() => 'invalid' as 'test'],
+              config: () => [() => 'invalid' as 'test'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -101,7 +101,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'prod'],
-              config: [() => 'test'],
+              config: () => [() => 'test'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -115,7 +115,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'test'],
-              config: [() => 'prep'],
+              config: () => [() => 'prep'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -128,7 +128,7 @@ describe('getEnvironment', () => {
           cache: 'skip',
           parsers: {
             access: [() => 'prep'],
-            config: [() => 'test'],
+            config: () => [() => 'test'],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
