@@ -272,8 +272,8 @@ describe('getEnvironment', () => {
         };
         const parsers = {
           access: [accessParser],
-          server: [() => 'local@unix'],
-          commit: [() => 'v1.0.0@abc123'],
+          server: [(): 'local@unix' => 'local@unix'],
+          commit: [(): 'v1.0.0@abc123' => 'v1.0.0@abc123'],
         };
 
         // use isolated cache to avoid pollution from other tests
