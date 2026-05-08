@@ -84,12 +84,37 @@ export const fromUnixDesktop = (): (() => EnvironmentServerTier | null) => {
 };
 
 /**
- * .what = factory for fromGit parser
- * .why = README contract: fromGit() returns a parser
+ * .what = factory for fromGit.async parser
+ * .why = returns async parser for filled() contexts
  */
-export const fromGit = (): (() => Promise<EnvironmentCommitSlug | null>) => {
+const fromGitAsync = (): (() => Promise<EnvironmentCommitSlug | null>) => {
   const parser = (): Promise<EnvironmentCommitSlug | null> =>
     getEnvCommitFromGit();
-  Object.defineProperty(parser, 'name', { value: 'fromGit' });
+  Object.defineProperty(parser, 'name', { value: 'fromGit.async' });
   return parser;
 };
+
+/**
+ * .what = factory for fromGit.sync parser
+ * .why = returns sync parser for static() contexts
+ */
+const fromGitSync = (): (() => EnvironmentCommitSlug | null) => {
+  const parser = (): EnvironmentCommitSlug | null => getEnvCommitFromGit.sync();
+  Object.defineProperty(parser, 'name', { value: 'fromGit.sync' });
+  return parser;
+};
+
+/**
+ * .what = factory for fromGit parser with .sync() and .async() methods
+ * .why = README contract: fromGit() returns async parser (backwards compat)
+ *        fromGit.sync() returns sync parser
+ *        fromGit.async() returns async parser (explicit)
+ */
+const fromGitFactory = fromGitAsync as typeof fromGitAsync & {
+  sync: typeof fromGitSync;
+  async: typeof fromGitAsync;
+};
+fromGitFactory.sync = fromGitSync;
+fromGitFactory.async = fromGitAsync;
+
+export const fromGit = fromGitFactory;

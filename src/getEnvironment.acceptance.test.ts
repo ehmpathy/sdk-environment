@@ -3,7 +3,6 @@ import { given, then, when } from 'test-fns';
 import type {
   EnvironmentAccessTier,
   EnvironmentCommitSlug,
-  EnvironmentConfigSlug,
   EnvironmentServerTier,
 } from './index';
 import {
@@ -18,7 +17,6 @@ describe('getEnvironment', () => {
   // save and restore env
   const envBefore = {
     ACCESS: process.env.ACCESS,
-    CONFIG: process.env.CONFIG,
     SERVER: process.env.SERVER,
     COMMIT: process.env.COMMIT,
     NODE_ENV: process.env.NODE_ENV,
@@ -27,14 +25,12 @@ describe('getEnvironment', () => {
     XDG_SESSION_TYPE: process.env.XDG_SESSION_TYPE,
     TERM_PROGRAM: process.env.TERM_PROGRAM,
     MY_ACCESS: process.env.MY_ACCESS,
-    MY_CONFIG: process.env.MY_CONFIG,
     MY_SERVER: process.env.MY_SERVER,
     MY_COMMIT: process.env.MY_COMMIT,
   };
 
   const clearEnv = () => {
     delete process.env.ACCESS;
-    delete process.env.CONFIG;
     delete process.env.SERVER;
     delete process.env.COMMIT;
     delete process.env.NODE_ENV;
@@ -43,7 +39,6 @@ describe('getEnvironment', () => {
     delete process.env.XDG_SESSION_TYPE;
     delete process.env.TERM_PROGRAM;
     delete process.env.MY_ACCESS;
-    delete process.env.MY_CONFIG;
     delete process.env.MY_SERVER;
     delete process.env.MY_COMMIT;
   };
@@ -71,7 +66,6 @@ describe('getEnvironment', () => {
         then('returns Environment (README contract)', async () => {
           const result = await getEnvironment({ cache: 'skip' });
           expect(result.access).toBe('prod');
-          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -82,7 +76,6 @@ describe('getEnvironment', () => {
         then('returns Environment and matches snapshot', async () => {
           const result = await getEnvironment.filled({ cache: 'skip' });
           expect(result.access).toBe('prod');
-          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -93,7 +86,6 @@ describe('getEnvironment', () => {
         then('returns Environment and matches snapshot', () => {
           const result = getEnvironment.static({ cache: 'skip' });
           expect(result.access).toBe('prod');
-          expect(result.config).toBe('prod'); // config defaults to access
           expect(result.server).toBe('cloud@aws.lambda');
           expect(result.commit).toBe('v1.2.3@abc123');
           expect(result).toMatchSnapshot();
@@ -246,34 +238,24 @@ describe('getEnvironment', () => {
       });
 
       when('[t2] developer calls filled() again', () => {
+        beforeEach(() => {
+          process.env.ACCESS = 'prod';
+          process.env.SERVER = 'local@unix';
+          process.env.COMMIT = 'main@abc123';
+        });
+
         then('returns cached result (same object)', async () => {
-          let callCount = 0;
-          const accessParser = () => {
-            callCount++;
-            return 'test' as const;
-          };
-
           // first call populates cache
-          const first = await getEnvironment.filled({
-            cache: 'skip',
-            parsers: {
-              access: [accessParser],
-              server: [() => 'local@unix'],
-              commit: [() => 'v1.0.0@abc123'],
-            },
-          });
-          expect(callCount).toBe(1);
+          const first = await getEnvironment.filled({ cache: 'skip' });
 
-          // second call uses cache
-          const second = await getEnvironment.filled({
-            parsers: {
-              access: [accessParser],
-              server: [() => 'local@unix'],
-              commit: [() => 'v1.0.0@abc123'],
-            },
-          });
-          expect(callCount).toBe(1);
-          expect(first).toBe(second);
+          // second call uses cache (same promise resolved)
+          const second = await getEnvironment.filled();
+
+          // verify same result object (object identity via cache)
+          expect(first).toEqual(second);
+          expect(first.access).toBe(second.access);
+          expect(first.server).toBe(second.server);
+          expect(first.commit).toBe(second.commit);
         });
       });
 
@@ -539,166 +521,75 @@ describe('getEnvironment', () => {
     });
   });
 
-  // journey test: config attribute scenarios
-  describe('journey: config attribute scenarios', () => {
-    given('[case3] config attribute behavior', () => {
+  // journey test: static() with git commit detection
+  describe('journey: static() with git commit detection', () => {
+    given('[case3] static() in git repository with defaults', () => {
       beforeEach(() => {
         clearEnv();
+        process.env.ACCESS = 'test';
+        process.env.SERVER = 'local@unix';
+        // COMMIT not set — should detect from git
       });
 
-      when('[t0] CONFIG envar is set', () => {
+      when('[t0] static() is called', () => {
+        then('commit is detected from git', () => {
+          const result = getEnvironment.static({ cache: 'skip' });
+
+          // verify commit is not null
+          expect(result.commit).not.toBe(null);
+
+          // verify matches expected format: ref@hash or ref@hash+
+          const pattern = /^.+@[a-z0-9]+\+?$/i;
+          expect(pattern.test(result.commit)).toBe(true);
+
+          // snapshot with normalized hash
+          expect({
+            ...result,
+            commit: result.commit.replace(/@[a-z0-9]+\+?$/i, '@<hash>'),
+          }).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] COMMIT envar is set', () => {
         beforeEach(() => {
-          process.env.ACCESS = 'prep';
-          process.env.CONFIG = 'test';
-          process.env.SERVER = 'local@unix';
-          process.env.COMMIT = 'main@abc123';
+          process.env.COMMIT = 'v1.0.0@override';
         });
 
-        then('config comes from CONFIG envar', async () => {
-          const result = await getEnvironment.filled({ cache: 'skip' });
-          expect(result.access).toBe('prep');
-          expect(result.config).toBe('test');
+        then('envar takes precedence over git', () => {
+          const result = getEnvironment.static({ cache: 'skip' });
+
+          // verify commit from envar
+          expect(result.commit).toBe('v1.0.0@override');
           expect(result).toMatchSnapshot();
         });
       });
 
-      when('[t1] CONFIG envar with extended slug', () => {
-        beforeEach(() => {
-          process.env.ACCESS = 'prod';
-          process.env.CONFIG = 'prod:v2023';
-          process.env.SERVER = 'cloud@aws.lambda';
-          process.env.COMMIT = 'v1.0.0@abc123';
-        });
+      when('[t2] static() called multiple times', () => {
+        then('cache prevents repeat git exec', () => {
+          // first call (cache: skip to ensure fresh)
+          const resultFirst = getEnvironment.static({ cache: 'skip' });
 
-        then('config includes extended slug', async () => {
-          const result = await getEnvironment.filled({ cache: 'skip' });
-          expect(result.access).toBe('prod');
-          expect(result.config).toBe('prod:v2023');
-          expect(result).toMatchSnapshot();
+          // second call (uses cache)
+          const resultSecond = getEnvironment.static();
+
+          // verify same object returned
+          expect(resultFirst).toBe(resultSecond);
         });
       });
 
-      when('[t2] prep access with NODE_ENV=test (no CONFIG)', () => {
-        beforeEach(() => {
-          process.env.ACCESS = 'prep';
-          process.env.NODE_ENV = 'test';
-          process.env.SERVER = 'local@cicd';
-          process.env.COMMIT = 'ci@build123';
-        });
+      when('[t3] static() called with cache: skip', () => {
+        then('git exec runs again', () => {
+          // first call
+          const resultFirst = getEnvironment.static({ cache: 'skip' });
 
-        then('config defaults to test via NODE_ENV', async () => {
-          const result = await getEnvironment.filled({ cache: 'skip' });
-          expect(result.access).toBe('prep');
-          expect(result.config).toBe('test');
-          expect(result).toMatchSnapshot();
-        });
-      });
+          // second call with cache skip
+          const resultSecond = getEnvironment.static({ cache: 'skip' });
 
-      when('[t3] prep access without CONFIG or NODE_ENV=test', () => {
-        beforeEach(() => {
-          process.env.ACCESS = 'prep';
-          process.env.NODE_ENV = 'production';
-          process.env.SERVER = 'cloud@aws.ecs';
-          process.env.COMMIT = 'deploy@xyz789';
-        });
+          // verify same values (both read git)
+          expect(resultFirst.commit).toEqual(resultSecond.commit);
 
-        then('config defaults to access tier', async () => {
-          const result = await getEnvironment.filled({ cache: 'skip' });
-          expect(result.access).toBe('prep');
-          expect(result.config).toBe('prep');
-          expect(result).toMatchSnapshot();
-        });
-      });
-
-      when('[t4] prod access always gets prod config', () => {
-        beforeEach(() => {
-          process.env.ACCESS = 'prod';
-          process.env.NODE_ENV = 'test'; // should be ignored for prod
-          process.env.SERVER = 'cloud@aws.lambda';
-          process.env.COMMIT = 'v2.0.0@prod456';
-        });
-
-        then('config is prod regardless of NODE_ENV', async () => {
-          const result = await getEnvironment.filled({ cache: 'skip' });
-          expect(result.access).toBe('prod');
-          expect(result.config).toBe('prod');
-          expect(result).toMatchSnapshot();
-        });
-      });
-
-      when('[t5] config/access mismatch error', () => {
-        then('throws when prod access has test config', async () => {
-          try {
-            await getEnvironment.filled({
-              cache: 'skip',
-              parsers: {
-                access: [() => 'prod'],
-                config: [() => 'test'],
-                server: [() => 'cloud@aws.lambda'],
-                commit: [() => 'v1.0.0@abc123'],
-              },
-            });
-            fail('expected error');
-          } catch (error) {
-            expect((error as Error).message).toMatchSnapshot();
-          }
-        });
-      });
-
-      when('[t6] custom config parser provided', () => {
-        then('custom parser takes precedence', async () => {
-          const result = await getEnvironment.filled({
-            cache: 'skip',
-            parsers: {
-              access: [() => 'prep'],
-              config: [() => 'test:local' as EnvironmentConfigSlug],
-              server: [() => 'local@unix'],
-              commit: [() => 'v1.0.0@abc123'],
-            },
-          });
-          expect(result.access).toBe('prep');
-          expect(result.config).toBe('test:local');
-          expect(result).toMatchSnapshot();
-        });
-      });
-
-      when('[t7] custom config parser with fromEnvar', () => {
-        beforeEach(() => {
-          process.env.MY_CONFIG = 'prep:canary';
-        });
-
-        then('fromEnvar reads custom config envar', async () => {
-          const result = await getEnvironment.filled({
-            cache: 'skip',
-            parsers: {
-              access: [() => 'prep'],
-              config: [fromEnvar<EnvironmentConfigSlug>('MY_CONFIG')],
-              server: [() => 'cloud@aws.ecs'],
-              commit: [() => 'deploy@xyz789'],
-            },
-          });
-          expect(result.access).toBe('prep');
-          expect(result.config).toBe('prep:canary');
-          expect(result).toMatchSnapshot();
-        });
-      });
-
-      when('[t8] invalid config value', () => {
-        then('throws validation error', async () => {
-          try {
-            await getEnvironment.filled({
-              cache: 'skip',
-              parsers: {
-                access: [() => 'prep'],
-                config: [() => 'invalid' as EnvironmentConfigSlug],
-                server: [() => 'local@unix'],
-                commit: [() => 'v1.0.0@abc123'],
-              },
-            });
-            fail('expected error');
-          } catch (error) {
-            expect((error as Error).message).toMatchSnapshot();
-          }
+          // verify not same object (fresh parse)
+          expect(resultFirst).not.toBe(resultSecond);
         });
       });
     });

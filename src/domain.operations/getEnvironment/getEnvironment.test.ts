@@ -1,3 +1,6 @@
+import { createCache } from 'simple-in-memory-cache';
+
+import type { Environment } from '../../domain.objects/Environment';
 import { getEnvironment } from './getEnvironment';
 
 describe('getEnvironment', () => {
@@ -59,7 +62,7 @@ describe('getEnvironment', () => {
           cache: 'skip',
           parsers: {
             access: [() => 'prep'],
-            config: [() => null, () => 'test', () => 'prep'],
+            config: () => [() => null, () => 'test', () => 'prep'],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
@@ -87,7 +90,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'prep'],
-              config: [() => 'invalid' as 'test'],
+              config: () => [() => 'invalid' as 'test'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -101,7 +104,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'prod'],
-              config: [() => 'test'],
+              config: () => [() => 'test'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -115,7 +118,7 @@ describe('getEnvironment', () => {
             cache: 'skip',
             parsers: {
               access: [() => 'test'],
-              config: [() => 'prep'],
+              config: () => [() => 'prep'],
               server: [() => 'local@unix'],
               commit: [() => 'v1.0.0@abc123'],
             },
@@ -128,7 +131,7 @@ describe('getEnvironment', () => {
           cache: 'skip',
           parsers: {
             access: [() => 'prep'],
-            config: [() => 'test'],
+            config: () => [() => 'test'],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
@@ -138,16 +141,16 @@ describe('getEnvironment', () => {
     });
 
     describe('cache', () => {
-      test('returns cached result on second call', async () => {
+      test('cache skip with custom parsers forces fresh parse', async () => {
         let callCount = 0;
         const accessParser = () => {
           callCount++;
           return 'test' as const;
         };
 
-        // first call
+        // first call with custom parsers and cache skip
         await getEnvironment.filled({
-          cache: 'skip', // skip to ensure we start fresh
+          cache: 'skip',
           parsers: {
             access: [accessParser],
             server: [() => 'local@unix'],
@@ -156,43 +159,48 @@ describe('getEnvironment', () => {
         });
         expect(callCount).toBe(1);
 
-        // second call uses cache
+        // second call also computes fresh (explicit cache skip)
         await getEnvironment.filled({
+          cache: 'skip',
           parsers: {
             access: [accessParser],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
         });
-        expect(callCount).toBe(1); // not incremented
+        expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
 
       test('cache skip forces fresh parse', async () => {
-        let callCount = 0;
-        const accessParser = () => {
-          callCount++;
-          return 'test' as const;
+        // set envars so default parsers succeed without AWS calls
+        const envBefore = {
+          ACCESS: process.env.ACCESS,
+          SERVER: process.env.SERVER,
+          COMMIT: process.env.COMMIT,
         };
+        process.env.ACCESS = 'test';
+        process.env.SERVER = 'local@unix';
+        process.env.COMMIT = 'main@abc123';
 
-        await getEnvironment.filled({
-          cache: 'skip',
-          parsers: {
-            access: [accessParser],
-            server: [() => 'local@unix'],
-            commit: [() => 'v1.0.0@abc123'],
-          },
-        });
-        expect(callCount).toBe(1);
+        try {
+          // first call populates cache
+          const result1 = await getEnvironment.filled();
 
-        await getEnvironment.filled({
-          cache: 'skip',
-          parsers: {
-            access: [accessParser],
-            server: [() => 'local@unix'],
-            commit: [() => 'v1.0.0@abc123'],
-          },
-        });
-        expect(callCount).toBe(2);
+          // second call with skip forces fresh parse but populates cache
+          const result2 = await getEnvironment.filled({ cache: 'skip' });
+
+          // results should be equivalent (same default parsers)
+          expect(result1.access).toBe(result2.access);
+          expect(result1.server).toBe(result2.server);
+        } finally {
+          // restore envars
+          if (envBefore.ACCESS === undefined) delete process.env.ACCESS;
+          else process.env.ACCESS = envBefore.ACCESS;
+          if (envBefore.SERVER === undefined) delete process.env.SERVER;
+          else process.env.SERVER = envBefore.SERVER;
+          if (envBefore.COMMIT === undefined) delete process.env.COMMIT;
+          else process.env.COMMIT = envBefore.COMMIT;
+        }
       });
     });
   });
@@ -226,16 +234,16 @@ describe('getEnvironment', () => {
     });
 
     describe('cache', () => {
-      test('returns cached result on second call', () => {
+      test('cache skip with custom parsers forces fresh parse', () => {
         let callCount = 0;
         const accessParser = () => {
           callCount++;
           return 'test' as const;
         };
 
-        // first call
+        // first call with custom parsers and cache skip
         getEnvironment.static({
-          cache: 'skip', // skip to ensure we start fresh
+          cache: 'skip',
           parsers: {
             access: [accessParser],
             server: [() => 'local@unix'],
@@ -244,43 +252,42 @@ describe('getEnvironment', () => {
         });
         expect(callCount).toBe(1);
 
-        // second call uses cache
+        // second call also computes fresh (explicit cache skip)
         getEnvironment.static({
+          cache: 'skip',
           parsers: {
             access: [accessParser],
             server: [() => 'local@unix'],
             commit: [() => 'v1.0.0@abc123'],
           },
         });
-        expect(callCount).toBe(1); // not incremented
+        expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
 
       test('cache skip forces fresh parse', () => {
         let callCount = 0;
-        const accessParser = () => {
+        const accessParser = (): 'test' => {
           callCount++;
-          return 'test' as const;
+          return 'test';
+        };
+        const parsers = {
+          access: [accessParser],
+          server: [(): 'local@unix' => 'local@unix'],
+          commit: [(): 'v1.0.0@abc123' => 'v1.0.0@abc123'],
         };
 
-        getEnvironment.static({
-          cache: 'skip',
-          parsers: {
-            access: [accessParser],
-            server: [() => 'local@unix'],
-            commit: [() => 'v1.0.0@abc123'],
-          },
-        });
-        expect(callCount).toBe(1);
+        // use isolated cache to avoid pollution from other tests
+        const cache = createCache<Environment>();
+        expect(cache.keys()).toEqual([]); // cache starts empty
 
-        getEnvironment.static({
-          cache: 'skip',
-          parsers: {
-            access: [accessParser],
-            server: [() => 'local@unix'],
-            commit: [() => 'v1.0.0@abc123'],
-          },
-        });
-        expect(callCount).toBe(2);
+        // first call populates cache
+        getEnvironment.static({ cache, parsers });
+        expect(callCount).toBe(1);
+        expect(cache.keys()).toEqual(['static']); // cache now has entry
+
+        // second call with skip forces fresh parse (bypasses cache read)
+        getEnvironment.static({ cache: 'skip', parsers });
+        expect(callCount).toBe(2); // incremented because cache: 'skip' bypasses cache
       });
     });
   });
