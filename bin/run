@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+######################################################################
+# .what = bash shim to invoke bun-compiled cli binary
+# .why  = enables symlink resolution from node_modules/.bin/
+######################################################################
+set -euo pipefail
+
+BIN="${BASH_SOURCE[0]}"
+while [ -L "$BIN" ]; do
+  BIN_DIR="$(cd "$(dirname "$BIN")" && pwd)"
+  BIN="$(readlink "$BIN")"
+  [[ "$BIN" != /* ]] && BIN="$BIN_DIR/$BIN"
+done
+BIN_DIR="$(cd "$(dirname "$BIN")" && pwd)"
+
+exec "$BIN_DIR/run.bun.sdk-environment.bc" "$@"

@@ -16,11 +16,15 @@
   "bugs": "https://github.com/ehmpathy/sdk-environment/issues",
   "license": "MIT",
   "main": "dist/index.js",
+  "bin": {
+    "sdk-environment": "./bin/run"
+  },
   "engines": {
     "node": ">=8.0.0"
   },
   "files": [
-    "/dist"
+    "/dist",
+    "/bin"
   ],
   "scripts": {
     "build:ts": "tsc -p ./tsconfig.build.json",
@@ -33,6 +37,10 @@
     "build:clean:tsc": "(chmod -R u+w dist 2>/dev/null || true) && rm -rf dist/",
     "build:clean": "npm run build:clean:tsc && npm run build:clean:bun",
     "build:compile:tsc": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json",
+    "build:compile:bun": "npm run build:compile:bun:check:before && npm run build:compile:bun:run && npm run build:compile:bun:check:after",
+    "build:compile:bun:check:before": "echo '🔍 bun check...' && BUN_VERSION=$(bun --version) && [ -n \"$BUN_VERSION\" ] && echo \"👌 bun installed: $BUN_VERSION\" || (echo '⛈️ bun not functional' && exit 1)",
+    "build:compile:bun:check:after": "test -f ./bin/run.bun.sdk-environment.bc && echo '👌 .bc file created' || (echo '⛈️ .bc file not found' && ls -la ./bin/ && exit 1)",
+    "build:compile:bun:run": "bun build ./src/contract/cli/invoke.ts --compile --bytecode --outfile ./bin/run.bun.sdk-environment.bc",
     "build:compile": "npm run build:compile:tsc && npm run build:compile:bun --if-present",
     "build": "npm run build:clean && npm run build:compile && npm run build:complete --if-present",
     "test:auth": "[ \"$ECHO\" = 'true' ] && echo '. .agent/repo=.this/role=any/skills/use.apikeys.sh' || . .agent/repo=.this/role=any/skills/use.apikeys.sh",
@@ -54,7 +62,7 @@
     "preversion": "npm run prepush",
     "postversion": "git push origin HEAD --tags --no-verify",
     "prepare:husky": "husky install && chmod ug+x .husky/*",
-    "prepare:rhachet": "rhachet init --hooks --roles behaver mechanic reviewer",
+    "prepare:rhachet": "npm run build && rhachet init --hooks --roles behaver mechanic reviewer",
     "prepare": "if [ -e .git ] && [ -z $CI ]; then npm run prepare:husky && npm run prepare:rhachet; fi",
     "upgrade:rhachet": "rhachet upgrade"
   },
@@ -65,7 +73,9 @@
     "with-simple-cache": "0.15.3"
   },
   "devDependencies": {
+    "sdk-environment": "link:.",
     "@biomejs/biome": "2.3.8",
+    "bun": "1.3.5",
     "@commitlint/cli": "19.5.0",
     "@commitlint/config-conventional": "19.5.0",
     "@swc/core": "1.15.3",
@@ -87,12 +97,12 @@
     "helpful-errors": "1.5.3",
     "husky": "8.0.3",
     "jest": "30.2.0",
-    "rhachet": "1.41.9",
+    "rhachet": "1.41.11",
     "rhachet-brains-anthropic": "0.4.1",
     "rhachet-brains-xai": "0.3.3",
     "rhachet-roles-bhrain": "0.27.6",
     "rhachet-roles-bhuild": "0.21.9",
-    "rhachet-roles-ehmpathy": "1.35.5",
+    "rhachet-roles-ehmpathy": "1.35.6",
     "test-fns": "1.7.2",
     "ts-jest": "29.1.3",
     "ts-node": "10.9.2",
@@ -106,5 +116,10 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "packageManager": "pnpm@10.24.0"
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bun"
+    ]
+  }
 }

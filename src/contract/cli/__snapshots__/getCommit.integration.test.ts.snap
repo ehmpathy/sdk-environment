@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getCommit (cli) given: [case1] a git repository when: [t0] \`get commit\` is invoked then: output matches snapshot (hash stripped) 1`] = `"v0.1.3@<hash>+"`;

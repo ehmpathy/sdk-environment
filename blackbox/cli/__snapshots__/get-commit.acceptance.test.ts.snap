@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`sdk-environment get commit (acceptance) given: [case1] tag at HEAD, clean worktree when: [t0] \`get commit\` is invoked then: output matches snapshot 1`] = `"v1.0.0@<hash>"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case2] tag at HEAD, dirty worktree when: [t0] \`get commit\` is invoked then: output matches snapshot 1`] = `"v1.0.0@<hash>+"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case3] branch (no tag), clean worktree when: [t0] \`get commit\` is invoked then: output matches snapshot (branch and hash stripped) 1`] = `"<branch>@<hash>"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case4] branch (no tag), dirty worktree when: [t0] \`get commit\` is invoked then: output matches snapshot (branch and hash stripped) 1`] = `"<branch>@<hash>+"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case5] not a git repo when: [t0] \`get commit\` is invoked then: output matches snapshot 1`] = `"error: could not determine commit (not a git repo or no ref found)"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case6] unknown command when: [t0] \`foo bar\` is invoked then: output matches snapshot 1`] = `"unknown command"`;
+
+exports[`sdk-environment get commit (acceptance) given: [case7] invoked via npx sdk-environment when: [t0] \`npx sdk-environment get commit\` is run then: output matches snapshot (ref and hash stripped) 1`] = `"<ref>@<hash>"`;
