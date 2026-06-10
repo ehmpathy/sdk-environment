@@ -1,4 +1,4 @@
-import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
 
 /**
  * .what = account name pattern to access tier map
@@ -63,6 +63,13 @@ export const getEnvAccessFromAwsAccountName = async (input?: {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
       const errorName = error.name.toLowerCase();
+      const code = (error as NodeJS.ErrnoException).code;
+
+      // sdk not installed — gracefully skip
+      if (code === 'ERR_MODULE_NOT_FOUND' || code === 'MODULE_NOT_FOUND') {
+        return null;
+      }
+
       if (
         message.includes('region') ||
         message.includes('could not load credentials') ||
@@ -73,7 +80,7 @@ export const getEnvAccessFromAwsAccountName = async (input?: {
         message.includes('security token') ||
         message.includes('session') ||
         message.includes('expired') ||
-        message.includes('reauthenticate') ||
+        message.includes('reauthentimate') ||
         errorName.includes('invalidclienttokenid') ||
         errorName.includes('credentialsprovider')
       ) {

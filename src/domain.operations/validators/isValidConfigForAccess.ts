@@ -1,7 +1,7 @@
 import { BadRequestError } from 'helpful-errors';
 
-import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
 
 /**
  * .what = validate config matches access tier constraints

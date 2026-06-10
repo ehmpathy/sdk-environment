@@ -23,9 +23,5 @@ ignores:
   - yalc
   - rhachet-brains-anthropic
   - rhachet-brains-xai
-  - "@tsconfig/node-lts-strictest"
-  - core-js
-  - ts-jest
-  - ts-node
   - sdk-environment
   - bun

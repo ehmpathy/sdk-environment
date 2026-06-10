@@ -1,5 +1,5 @@
-import type { EnvironmentConfigSlug } from '../../../domain.objects/EnvironmentConfigSlug';
-import { isEnvironmentConfigSlug } from '../../validators/isEnvironmentConfigSlug';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
+import { isEnvironmentConfigSlug } from '@src/domain.operations/validators/isEnvironmentConfigSlug';
 
 /**
  * .what = parse config from CONFIG environment variable

@@ -1,6 +1,7 @@
-import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
-import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
+
 import {
   type AwsAccountAliasMap,
   getEnvAccessFromAwsAccountAlias,

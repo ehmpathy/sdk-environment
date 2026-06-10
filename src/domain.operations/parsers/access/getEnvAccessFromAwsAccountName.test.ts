@@ -1,7 +1,42 @@
+import { given, then, when } from 'test-fns';
+
 import {
   type AwsAccountPatternMap,
   matchNameToAccess,
 } from './getEnvAccessFromAwsAccountName';
+
+describe('getEnvAccessFromAwsAccountName', () => {
+  given('aws sdk is not installed', () => {
+    when('module import fails with MODULE_NOT_FOUND', () => {
+      then('returns null gracefully', async () => {
+        // mock the dynamic import to simulate sdk not installed
+        const originalImport = globalThis.import;
+        jest.mock('@aws-sdk/client-account', () => {
+          const error = new Error(
+            "Cannot find module '@aws-sdk/client-account'",
+          ) as NodeJS.ErrnoException;
+          error.code = 'MODULE_NOT_FOUND';
+          throw error;
+        });
+
+        // clear module cache to force re-import
+        jest.resetModules();
+
+        // re-import the function
+        const { getEnvAccessFromAwsAccountName: fn } = await import(
+          './getEnvAccessFromAwsAccountName'
+        );
+
+        const result = await fn();
+        expect(result).toBeNull();
+
+        // cleanup
+        jest.unmock('@aws-sdk/client-account');
+        jest.resetModules();
+      });
+    });
+  });
+});
 
 describe('matchNameToAccess', () => {
   const defaultMap: AwsAccountPatternMap = {

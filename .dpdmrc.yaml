@@ -1,0 +1,7 @@
+# dpdm exclude patterns
+# each entry is joined with | to form a single regex for --exclude
+#
+# aws-sdk excluded: optional peer dep with internal cycles (not shipped to consumers)
+exclude:
+  - "@aws-sdk"
+  - "@aws-crypto"

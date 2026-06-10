@@ -2,20 +2,20 @@ import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
 import { createCache, type SimpleInMemoryCache } from 'simple-in-memory-cache';
 import { withSimpleCache } from 'with-simple-cache';
 
-import type { Environment } from '../../domain.objects/Environment';
-import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
-import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
-import { getEnvAccess } from '../parsers/access/getEnvAccess';
-import { getEnvCommit } from '../parsers/commit/getEnvCommit';
-import { getEnvConfig } from '../parsers/config/getEnvConfig';
-import { getEnvServer } from '../parsers/server/getEnvServer';
-import { isEnvironmentAccessTier } from '../validators/isEnvironmentAccessTier';
-import { isEnvironmentCommitSlug } from '../validators/isEnvironmentCommitSlug';
-import { isEnvironmentConfigSlug } from '../validators/isEnvironmentConfigSlug';
-import { isEnvironmentServerTier } from '../validators/isEnvironmentServerTier';
-import { isValidConfigForAccess } from '../validators/isValidConfigForAccess';
+import type { Environment } from '@src/domain.objects/Environment';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
+import { getEnvAccess } from '@src/domain.operations/parsers/access/getEnvAccess';
+import { getEnvCommit } from '@src/domain.operations/parsers/commit/getEnvCommit';
+import { getEnvConfig } from '@src/domain.operations/parsers/config/getEnvConfig';
+import { getEnvServer } from '@src/domain.operations/parsers/server/getEnvServer';
+import { isEnvironmentAccessTier } from '@src/domain.operations/validators/isEnvironmentAccessTier';
+import { isEnvironmentCommitSlug } from '@src/domain.operations/validators/isEnvironmentCommitSlug';
+import { isEnvironmentConfigSlug } from '@src/domain.operations/validators/isEnvironmentConfigSlug';
+import { isEnvironmentServerTier } from '@src/domain.operations/validators/isEnvironmentServerTier';
+import { isValidConfigForAccess } from '@src/domain.operations/validators/isValidConfigForAccess';
 
 /**
  * .what = parser function type

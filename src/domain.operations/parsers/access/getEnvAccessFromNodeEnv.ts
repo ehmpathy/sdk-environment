@@ -1,4 +1,4 @@
-import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
 
 /**
  * .what = parse access tier from NODE_ENV environment variable
