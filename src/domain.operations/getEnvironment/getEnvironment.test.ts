@@ -1,6 +1,7 @@
 import { createCache } from 'simple-in-memory-cache';
 
-import type { Environment } from '../../domain.objects/Environment';
+import type { Environment } from '@src/domain.objects/Environment';
+
 import { getEnvironment } from './getEnvironment';
 
 describe('getEnvironment', () => {

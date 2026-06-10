@@ -1,4 +1,4 @@
-import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
 
 const SERVER_TIER_PATTERN = /^(local|cloud)@.+$/;
 

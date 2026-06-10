@@ -1,4 +1,4 @@
-import type { EnvironmentServerTier } from '../../../domain.objects/EnvironmentServerTier';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
 
 /**
  * .what = detect unix desktop from XDG_SESSION_TYPE or TERM_PROGRAM

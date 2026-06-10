@@ -1,4 +1,4 @@
-import { getEnvCommitFromGit } from '../../domain.operations/parsers/commit/getEnvCommitFromGit';
+import { getEnvCommitFromGit } from '@src/domain.operations/parsers/commit/getEnvCommitFromGit';
 
 /**
  * .what = outputs commit slug to stdout for cli capture

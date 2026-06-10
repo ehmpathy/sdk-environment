@@ -1,5 +1,5 @@
-import type { EnvironmentCommitSlug } from '../../../domain.objects/EnvironmentCommitSlug';
-import { isEnvironmentCommitSlug } from '../../validators/isEnvironmentCommitSlug';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
+import { isEnvironmentCommitSlug } from '@src/domain.operations/validators/isEnvironmentCommitSlug';
 
 /**
  * .what = parse commit slug from COMMIT environment variable

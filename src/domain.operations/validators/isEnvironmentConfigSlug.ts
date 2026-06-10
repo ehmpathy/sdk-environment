@@ -1,4 +1,5 @@
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
+
 import { ACCESS_TIERS } from './isEnvironmentAccessTier';
 
 /**

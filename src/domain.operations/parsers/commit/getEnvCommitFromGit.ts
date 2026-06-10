@@ -2,7 +2,7 @@ import { exec, execSync } from 'child_process';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import { promisify } from 'util';
 
-import type { EnvironmentCommitSlug } from '../../../domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
 
 /**
  * .what = default exec implementations

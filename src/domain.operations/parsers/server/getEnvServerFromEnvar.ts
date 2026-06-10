@@ -1,5 +1,5 @@
-import type { EnvironmentServerTier } from '../../../domain.objects/EnvironmentServerTier';
-import { isEnvironmentServerTier } from '../../validators/isEnvironmentServerTier';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
+import { isEnvironmentServerTier } from '@src/domain.operations/validators/isEnvironmentServerTier';
 
 /**
  * .what = parse server tier from SERVER environment variable

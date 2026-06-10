@@ -1,5 +1,5 @@
-import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
-import { isEnvironmentAccessTier } from '../../validators/isEnvironmentAccessTier';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import { isEnvironmentAccessTier } from '@src/domain.operations/validators/isEnvironmentAccessTier';
 
 /**
  * .what = parse access tier from ACCESS environment variable

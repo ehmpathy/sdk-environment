@@ -11,6 +11,17 @@ parse and expose the environment your code runs in
 npm install sdk-environment
 ```
 
+### optional: aws access detection
+
+to auto-detect access tier from AWS account alias or name:
+
+```sh
+npm install @aws-sdk/client-iam      # for fromAwsAccountAlias()
+npm install @aws-sdk/client-account  # for fromAwsAccountName()
+```
+
+these are optional — if not installed, the aws parsers gracefully return null and the next parser in the chain is tried.
+
 # what
 
 an environment is defined by three attributes:

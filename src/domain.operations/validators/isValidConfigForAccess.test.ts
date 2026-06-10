@@ -1,5 +1,6 @@
-import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
+
 import { isValidConfigForAccess } from './isValidConfigForAccess';
 
 describe('isValidConfigForAccess', () => {

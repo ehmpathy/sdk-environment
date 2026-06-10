@@ -1,4 +1,5 @@
-import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+
 import type { AwsAccountPatternMap } from './getEnvAccessFromAwsAccountName';
 
 /**
@@ -61,6 +62,13 @@ export const getEnvAccessFromAwsAccountAlias = async (input?: {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
       const name = error.name.toLowerCase();
+      const code = (error as NodeJS.ErrnoException).code;
+
+      // sdk not installed — gracefully skip
+      if (code === 'ERR_MODULE_NOT_FOUND' || code === 'MODULE_NOT_FOUND') {
+        return null;
+      }
+
       if (
         message.includes('region') ||
         message.includes('could not load credentials') ||

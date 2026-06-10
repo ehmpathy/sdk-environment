@@ -1,5 +1,5 @@
-import type { EnvironmentAccessTier } from '../../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentConfigSlug } from '../../../domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
 
 /**
  * .what = factory to create NODE_ENV parser for given access

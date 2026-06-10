@@ -1,4 +1,4 @@
-import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
 
 /**
  * .what = type guard for EnvironmentCommitSlug

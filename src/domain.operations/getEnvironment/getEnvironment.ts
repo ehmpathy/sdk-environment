@@ -2,20 +2,20 @@ import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
 import { createCache, type SimpleInMemoryCache } from 'simple-in-memory-cache';
 import { withSimpleCache } from 'with-simple-cache';
 
-import type { Environment } from '../../domain.objects/Environment';
-import type { EnvironmentAccessTier } from '../../domain.objects/EnvironmentAccessTier';
-import type { EnvironmentCommitSlug } from '../../domain.objects/EnvironmentCommitSlug';
-import type { EnvironmentConfigSlug } from '../../domain.objects/EnvironmentConfigSlug';
-import type { EnvironmentServerTier } from '../../domain.objects/EnvironmentServerTier';
-import { getEnvAccess } from '../parsers/access/getEnvAccess';
-import { getEnvCommit } from '../parsers/commit/getEnvCommit';
-import { getEnvConfig } from '../parsers/config/getEnvConfig';
-import { getEnvServer } from '../parsers/server/getEnvServer';
-import { isEnvironmentAccessTier } from '../validators/isEnvironmentAccessTier';
-import { isEnvironmentCommitSlug } from '../validators/isEnvironmentCommitSlug';
-import { isEnvironmentConfigSlug } from '../validators/isEnvironmentConfigSlug';
-import { isEnvironmentServerTier } from '../validators/isEnvironmentServerTier';
-import { isValidConfigForAccess } from '../validators/isValidConfigForAccess';
+import type { Environment } from '@src/domain.objects/Environment';
+import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
+import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
+import type { EnvironmentConfigSlug } from '@src/domain.objects/EnvironmentConfigSlug';
+import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
+import { getEnvAccess } from '@src/domain.operations/parsers/access/getEnvAccess';
+import { getEnvCommit } from '@src/domain.operations/parsers/commit/getEnvCommit';
+import { getEnvConfig } from '@src/domain.operations/parsers/config/getEnvConfig';
+import { getEnvServer } from '@src/domain.operations/parsers/server/getEnvServer';
+import { isEnvironmentAccessTier } from '@src/domain.operations/validators/isEnvironmentAccessTier';
+import { isEnvironmentCommitSlug } from '@src/domain.operations/validators/isEnvironmentCommitSlug';
+import { isEnvironmentConfigSlug } from '@src/domain.operations/validators/isEnvironmentConfigSlug';
+import { isEnvironmentServerTier } from '@src/domain.operations/validators/isEnvironmentServerTier';
+import { isValidConfigForAccess } from '@src/domain.operations/validators/isValidConfigForAccess';
 
 /**
  * .what = parser function type
@@ -111,14 +111,12 @@ const defaultFilledCache = createCache<Promise<Environment>>();
 const defaultStaticCache = createCache<Environment>();
 
 /**
- * .what = create cache that skips reads but writes to target
- * .why = used when callers pass 'skip' to bypass cache lookup
- *        but still populate cache for subsequent calls
+ * .what = determine if cache read should be bypassed
+ * .why = when cache: 'skip', force fresh parse but still populate cache
  */
-const createCacheSkipRead = <T>(target: SimpleInMemoryCache<T>) => ({
-  get: () => undefined,
-  set: (key: string, value: T) => target.set(key, value),
-});
+const shouldBypassCacheGet = <T>(
+  input?: { cache?: SimpleInMemoryCache<T> | 'skip' | null } | null,
+): boolean => input?.cache === 'skip';
 
 /**
  * .what = run parser chain until first non-null result
@@ -245,11 +243,12 @@ const _filled = async (
  * .note = callers can supply their own cache via input
  */
 const filled = withSimpleCache(_filled, {
-  cache: ({ fromInput }) => {
-    const inputCache = fromInput[0]?.cache;
-    if (inputCache === 'skip') return createCacheSkipRead(defaultFilledCache);
+  cache: (input) => {
+    const inputCache = input?.cache;
+    if (inputCache === 'skip') return defaultFilledCache; // use default cache even on skip
     return inputCache ?? defaultFilledCache;
   },
+  bypass: { get: shouldBypassCacheGet },
   serialize: { key: () => 'filled' },
 });
 
@@ -328,11 +327,12 @@ const _staticEnv = (
  * .note = callers can supply their own cache via input
  */
 const staticEnv = withSimpleCache(_staticEnv, {
-  cache: ({ fromInput }) => {
-    const inputCache = fromInput[0]?.cache;
-    if (inputCache === 'skip') return createCacheSkipRead(defaultStaticCache);
+  cache: (input) => {
+    const inputCache = input?.cache;
+    if (inputCache === 'skip') return defaultStaticCache; // use default cache even on skip
     return inputCache ?? defaultStaticCache;
   },
+  bypass: { get: shouldBypassCacheGet },
   serialize: { key: () => 'static' },
 });
 
