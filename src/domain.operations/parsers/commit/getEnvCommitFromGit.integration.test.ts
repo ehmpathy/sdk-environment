@@ -19,7 +19,9 @@ describe('getEnvCommitFromGit', () => {
         expect(pattern.test(result!)).toBe(true);
 
         // snapshot format structure (ref@hash pattern, not exact value)
-        expect(result?.replace(/@[a-z0-9]+\+?$/i, '@<hash>')).toMatchSnapshot();
+        expect(
+          result?.replace(/^.+@[a-z0-9]+(\+?)$/i, '<ref>@<hash>$1'),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -40,7 +42,9 @@ describe('getEnvCommitFromGit', () => {
         expect(pattern.test(result!)).toBe(true);
 
         // snapshot format structure (ref@hash pattern, not exact value)
-        expect(result?.replace(/@[a-z0-9]+\+?$/i, '@<hash>')).toMatchSnapshot();
+        expect(
+          result?.replace(/^.+@[a-z0-9]+(\+?)$/i, '<ref>@<hash>$1'),
+        ).toMatchSnapshot();
       });
 
       then('returns same result as async variant', async () => {
