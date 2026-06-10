@@ -545,7 +545,10 @@ describe('getEnvironment', () => {
           // snapshot with normalized ref and hash
           expect({
             ...result,
-            commit: result.commit.replace(/^.+@[a-z0-9]+(\+?)$/i, '<ref>@<hash>$1'),
+            commit: result.commit.replace(
+              /^.+@[a-z0-9]+(\+?)$/i,
+              '<ref>@<hash>$1',
+            ),
           }).toMatchSnapshot();
         });
       });
