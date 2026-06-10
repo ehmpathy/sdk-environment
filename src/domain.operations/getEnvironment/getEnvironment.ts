@@ -111,14 +111,12 @@ const defaultFilledCache = createCache<Promise<Environment>>();
 const defaultStaticCache = createCache<Environment>();
 
 /**
- * .what = create cache that skips reads but writes to target
- * .why = used when callers pass 'skip' to bypass cache lookup
- *        but still populate cache for subsequent calls
+ * .what = determine if cache read should be bypassed
+ * .why = when cache: 'skip', force fresh parse but still populate cache
  */
-const createCacheSkipRead = <T>(target: SimpleInMemoryCache<T>) => ({
-  get: () => undefined,
-  set: (key: string, value: T) => target.set(key, value),
-});
+const shouldBypassCacheGet = <T>(
+  input?: { cache?: SimpleInMemoryCache<T> | 'skip' | null } | null,
+): boolean => input?.cache === 'skip';
 
 /**
  * .what = run parser chain until first non-null result
@@ -247,9 +245,10 @@ const _filled = async (
 const filled = withSimpleCache(_filled, {
   cache: (input) => {
     const inputCache = input?.cache;
-    if (inputCache === 'skip') return createCacheSkipRead(defaultFilledCache);
+    if (inputCache === 'skip') return defaultFilledCache; // use default cache even on skip
     return inputCache ?? defaultFilledCache;
   },
+  bypass: { get: shouldBypassCacheGet },
   serialize: { key: () => 'filled' },
 });
 
@@ -330,9 +329,10 @@ const _staticEnv = (
 const staticEnv = withSimpleCache(_staticEnv, {
   cache: (input) => {
     const inputCache = input?.cache;
-    if (inputCache === 'skip') return createCacheSkipRead(defaultStaticCache);
+    if (inputCache === 'skip') return defaultStaticCache; // use default cache even on skip
     return inputCache ?? defaultStaticCache;
   },
+  bypass: { get: shouldBypassCacheGet },
   serialize: { key: () => 'static' },
 });
 
