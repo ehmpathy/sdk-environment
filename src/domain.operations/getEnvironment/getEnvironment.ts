@@ -245,8 +245,8 @@ const _filled = async (
  * .note = callers can supply their own cache via input
  */
 const filled = withSimpleCache(_filled, {
-  cache: ({ fromInput }) => {
-    const inputCache = fromInput[0]?.cache;
+  cache: (input) => {
+    const inputCache = input?.cache;
     if (inputCache === 'skip') return createCacheSkipRead(defaultFilledCache);
     return inputCache ?? defaultFilledCache;
   },
@@ -328,8 +328,8 @@ const _staticEnv = (
  * .note = callers can supply their own cache via input
  */
 const staticEnv = withSimpleCache(_staticEnv, {
-  cache: ({ fromInput }) => {
-    const inputCache = fromInput[0]?.cache;
+  cache: (input) => {
+    const inputCache = input?.cache;
     if (inputCache === 'skip') return createCacheSkipRead(defaultStaticCache);
     return inputCache ?? defaultStaticCache;
   },
