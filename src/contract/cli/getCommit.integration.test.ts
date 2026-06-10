@@ -47,10 +47,10 @@ describe('getCommit (cli)', () => {
         expect(result.stderr).toBe('');
       });
 
-      then('output matches snapshot (hash stripped)', () => {
+      then('output matches snapshot (ref and hash stripped)', () => {
         const stdout = result.stdout.trim();
-        // strip hash for snapshot stability
-        const snapshotSafe = stdout.replace(/@[a-z0-9]+(\+?)$/i, '@<hash>$1');
+        // strip ref and hash for snapshot stability across branches
+        const snapshotSafe = stdout.replace(/^.+@[a-z0-9]+(\+?)$/i, '<ref>@<hash>$1');
         expect(snapshotSafe).toMatchSnapshot();
       });
     });
