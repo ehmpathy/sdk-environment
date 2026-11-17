@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvAccessFromAwsAccountName.realThrottle given: [case2] the account api throttles every call when: [t0] one cold caller reads the account name then: the caller sees the throttle error, by name 1`] = `
+{
+  "callsToAws": 18,
+  "message": "Too Many Requests",
+  "name": "TooManyRequestsException",
+}
+`;

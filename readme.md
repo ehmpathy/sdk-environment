@@ -22,6 +22,21 @@ npm install @aws-sdk/client-account  # for fromAwsAccountName()
 
 these are optional — if not installed, the aws parsers gracefully return null and the next parser in the chain is tried.
 
+#### fromAwsAccountName() shares one aws call per host
+
+many processes that start at once (e.g. jest workers) would each call `GetAccountInformation`, and aws throttles the burst. so the account name is cached on disk, shared by every process on the host that holds the same access key:
+
+- **where**: `$TMPDIR/sdk-environment.uid=$uid/aws-account-name/$hash.json` — a dir per os account, mode `0700`; files `0600`
+- **key**: a hash of the caller's access key id, so other credentials never read another caller's name, and no secret lands on disk
+- **who shares**: processes with one stable access key — env credentials (e.g. `aws configure export-credentials`), instance roles, ecs task roles. a profile that mints a fresh key per process (sso, assume-role, web identity) gets no share; each process asks aws once, guarded only by the throttle retry
+- **ttl**: 15 minutes. `getEnvironment({ cache: 'skip' })` skips the in-process cache only; to force a fresh aws read, delete the dir above
+- **lock**: the first cold process asks aws; the rest wait on a lock dir, then read its file. a dead holder's lock breaks at once. if the holder is throttled past its retries or gets a 5xx, the next waiter takes the lock, so aws sees one caller at a time; on any other failure (a credential refusal, an unreachable host), every waiter asks aws itself and sees its own error at once
+- **worst case**: under a sustained throttle, one holder's call can take ~30s (6 attempts here, each over the sdk's own 3, with backoff), and a wait ends at 60s; the waiter then asks aws itself. a test timeout shorter than that may fire first
+- **throttle**: a `TooManyRequestsException` backs off with jitter and retries, up to 6 attempts
+- **fallback**: any fs fault, or a dir another os account owns, skips the disk cache and asks aws direct
+
+⛈️ a test that stubs `AccountClient.send` must hold fake env credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`). the parser reads the access key id before it calls `send`: with no credentials it returns `null` before the stub runs, and with real ones the fake name lands in the cache under the real key. a module-level mock of `@aws-sdk/client-account` (a client with no credential provider) skips the disk cache and asks the mocked `send` direct, as before.
+
 # what
 
 an environment is defined by three attributes:
