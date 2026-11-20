@@ -19,5 +19,5 @@
 | F15-stubbed-send-needs-fake-credentials | a test that stubs `AccountClient.send` must hold fake env credentials | clean | disputed | 75% |
 | F16-real-aws-default-case-asserts-null-ungated | real-aws default case asserts null with no readability gate | clean | disputed | 85% |
 | F17-predicate-suites-stay-data-driven | predicate unit suites stay table-driven, not given/when/then | clean | disputed | 85% |
-| F18-live-real-aws-snaps-stay-masked | live real-aws snapshots stay behind the readability mask | clean | disputed | 80% |
+| F18-live-real-aws-snaps-stay-masked | live real-aws snapshots stay behind the readability mask | clean | ruled: keep a) | 80% |
 | F19-lock-fate-journeys-proven-below-the-contract | lock-fate journeys proven on the wrapper, not walked through `getEnvironment()` | clean | disputed | 80% |

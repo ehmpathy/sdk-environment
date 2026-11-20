@@ -18,4 +18,4 @@ clean: swap the matcher for a plain value, or delete the snap line.
 `src/domain.operations/parsers/access/getEnvAccessFromAwsAccountName.integration.test.ts`, the real-aws given
 
 ## .verdict
-awaits council.
+ruled 2026-11-20 by the human: keep the masked real-aws snapshots, a). main's plain pins fail on any runner that can read the account name; the mask holds on every runner. rework clean.
