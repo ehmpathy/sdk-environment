@@ -40,7 +40,9 @@ if (
  * .why =
  *   - auto-inject keys into process.env
  *   - fail fast with helpful error if keyrack locked or keys absent
+ * .note = ci holds no keyrack, so ci skips it, as jest.integration.env.ts does;
+ *         the role keyracks declare keys (OPENROUTER_API_KEY, AWS_PROFILE) no acceptance test reads
  */
 const keyrackYmlPath = join(process.cwd(), '.agent/keyrack.yml');
-if (existsSync(keyrackYmlPath))
+if (existsSync(keyrackYmlPath) && !process.env.CI)
   keyrack.source({ env: 'test', owner: 'ehmpath', mode: 'strict' });
