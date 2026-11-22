@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getEnvironment.coldStart given: [case1] 8 cold processes, one machine, and an account api that answers acme-test when: [t0] each process calls getEnvironment() at once then: every process gets the test tier 1`] = `
+{
+  "accesses": [
+    "test",
+    "test",
+    "test",
+    "test",
+    "test",
+    "test",
+    "test",
+    "test",
+  ],
+  "callsToAws": 1,
+}
+`;
+
+exports[`getEnvironment.coldStart given: [case2] an account api that throttles every call when: [t0] one cold process calls getEnvironment() then: the caller sees the throttle error, by name 1`] = `
+{
+  "callsToAws": 18,
+  "message": "Too Many Requests",
+  "name": "TooManyRequestsException",
+}
+`;
+
+exports[`getEnvironment.coldStart given: [case3] an account api that throttles 4 calls, then answers when: [t0] one cold process calls getEnvironment() then: the caller gets its tier, never the throttle 1`] = `
+{
+  "access": "test",
+  "callsToAws": 5,
+}
+`;

@@ -22,13 +22,26 @@ import { isValidConfigForAccess } from '@src/domain.operations/validators/isVali
  * .why = enables custom parser configuration
  */
 export type SyncParser<T> = () => T | null;
-export type AsyncParser<T> = () => T | null | Promise<T | null>;
+export type AsyncParser<T> = (
+  context?: ParserContext,
+) => T | null | Promise<T | null>;
+
+/**
+ * .what = what getEnvironment.filled() hands each async parser
+ * .why = a parser with a cache of its own (e.g. the shared aws account name file)
+ *        honors the caller's cache: 'skip'; a parser that takes no arg ignores it
+ */
+export interface ParserContext {
+  cache: 'skip' | null;
+}
 
 /**
  * .what = union parser type for public API
- * .why = matches README: type Parser<T> = () => T | null | Promise<T | null>
+ * .why = matches README: type Parser<T> = (context?) => T | null | Promise<T | null>
  */
-export type Parser<T> = () => T | null | Promise<T | null>;
+export type Parser<T> = (
+  context?: ParserContext,
+) => T | null | Promise<T | null>;
 
 /**
  * .what = compute display name for a parser function
@@ -126,9 +139,10 @@ const getOneFromParsersAsync = async <T>(
   parsers: Array<{ parser: AsyncParser<T>; name: string }>,
   validate: (value: unknown) => value is T,
   attributeName: string,
+  context: ParserContext,
 ): Promise<T> => {
   for (const { parser, name } of parsers) {
-    const result = await parser();
+    const result = await parser(context);
     if (result !== null) {
       if (!validate(result)) {
         throw new BadRequestError(
@@ -179,11 +193,13 @@ const computeFilledEnvironment = async (input: {
   ) => SyncParser<EnvironmentConfigSlug>[];
   serverParsers: AsyncParser<EnvironmentServerTier>[];
   commitParsers: AsyncParser<EnvironmentCommitSlug>[];
+  context: ParserContext;
 }): Promise<Environment> => {
   const access = await getOneFromParsersAsync(
     asParsersNamed(input.accessParsers),
     isEnvironmentAccessTier,
     'access',
+    input.context,
   );
 
   // config depends on access
@@ -199,11 +215,13 @@ const computeFilledEnvironment = async (input: {
     asParsersNamed(input.serverParsers),
     isEnvironmentServerTier,
     'server',
+    input.context,
   );
   const commit = await getOneFromParsersAsync(
     asParsersNamed(input.commitParsers),
     isEnvironmentCommitSlug,
     'commit',
+    input.context,
   );
 
   return { access, config, server, commit };
@@ -233,6 +251,7 @@ const _filled = async (
     configParsersFactory: input?.parsers?.config ?? DEFAULT_CONFIG_PARSERS,
     serverParsers: input?.parsers?.server ?? DEFAULT_SERVER_PARSERS,
     commitParsers: input?.parsers?.commit ?? DEFAULT_COMMIT_PARSERS,
+    context: { cache: input?.cache === 'skip' ? ('skip' as const) : null }, // a parser's own cache honors the skip too
   };
   return computeFilledEnvironment(parsersConfig);
 };

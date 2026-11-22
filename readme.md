@@ -22,6 +22,27 @@ npm install @aws-sdk/client-account  # for fromAwsAccountName()
 
 these are optional — if not installed, the aws parsers gracefully return null and the next parser in the chain is tried.
 
+#### fromAwsAccountName() shares one aws call per host
+
+many processes that start at once (e.g. jest workers) would each call `GetAccountInformation`, and aws throttles the burst. so the account name is cached on disk, shared by every process on the host that holds the same access key:
+
+- **where**: `$TMPDIR/sdk-environment.uid=$uid/aws-account-name/$hash.json` — a dir per os account, mode `0700`; files `0600`
+- **key**: a hash of the caller's access key id, so other credentials never read another caller's name, and no secret lands on disk
+- **who shares**: processes with one stable access key — env credentials (e.g. `aws configure export-credentials`), instance roles, ecs task roles
+- **who does not share**: a profile that mints temporary credentials in each process
+  - sso: each process calls sso `GetRoleCredentials` on its first credential load, and gets its own `ASIA…` key
+  - assume-role and web identity: each process calls sts `AssumeRole*`, and gets its own `ASIA…` key
+  - each process holds a different key id, so each hashes to a different cache file; every cold process asks aws once, guarded only by the throttle retry
+  - to share under sso, export one set of credentials before the processes start, e.g. `eval "$(aws configure export-credentials --profile $profile --format env)"`; every process then holds one key and shares one file
+- **ttl**: 1 hour. an access key id belongs to one principal in one account for life, so a key never reads another account's name; only an account rename waits out the ttl
+- **skip**: `getEnvironment({ cache: 'skip' })` skips both caches: it asks aws fresh past the disk file, then rewrites the file, so later callers on the host read the fresh name
+- **lock**: the first cold process asks aws; the rest wait on a lock dir, then read its file. a dead holder's lock breaks at once. if the holder is throttled past its retries or gets a 5xx, the next waiter takes the lock, so aws sees one caller at a time; on any other failure (a credential refusal, an unreachable host), every waiter asks aws itself and sees its own error at once
+- **worst case**: under a sustained throttle, one holder's call can take ~30s (6 attempts here, each over the sdk's own 3, with backoff), and a wait ends at 60s; the waiter then asks aws itself. a test timeout shorter than that may fire first
+- **throttle**: a `TooManyRequestsException` backs off with jitter and retries, up to 6 attempts
+- **fallback**: any fs fault, or a dir another os account owns, skips the disk cache and asks aws direct
+
+⛈️ a test that stubs `AccountClient.send` must hold fake env credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`). the parser reads the access key id before it calls `send`: with no credentials it returns `null` before the stub runs, and with real ones the fake name lands in the cache under the real key. a module-level mock of `@aws-sdk/client-account` (a client with no credential provider) skips the disk cache and asks the mocked `send` direct, as before.
+
 # what
 
 an environment is defined by three attributes:
@@ -144,8 +165,11 @@ const environment = await getEnvironment({
 a parser is a function that returns a value or null:
 
 ```ts
-type Parser<T> = () => T | null | Promise<T | null>;
+type Parser<T> = (context?: ParserContext) => T | null | Promise<T | null>;
+interface ParserContext { cache: 'skip' | null }
 ```
+
+`getEnvironment.filled()` hands each parser the caller's `cache` choice; a parser with a cache of its own honors a `'skip'`, and a parser that takes no arg ignores it.
 
 add custom parsers for your infrastructure:
 

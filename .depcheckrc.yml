@@ -8,10 +8,8 @@ ignores:
   - if-env
   - "@src/*"
   - "@src/.*"
-  - rhachet
-  - rhachet-roles-bhrain
-  - rhachet-roles-bhuild
-  - rhachet-roles-ehmpathy
+  # all rhachet packages (roles/brains churn as prepare:rhachet installs vary)
+  - "rhachet*"
   - "@tsconfig/node20"
   - "@tsconfig/strictest"
   - "@biomejs/biome"
@@ -21,7 +19,16 @@ ignores:
   - tsx
   - tsc-alias
   - yalc
-  - rhachet-brains-anthropic
-  - rhachet-brains-xai
   - sdk-environment
   - bun
+ignorePatterns:
+  # rhachet host-local runtime state (actor caches, plugin copies); gitignored,
+  # never source, and its files import packages this repo does not use
+  - .agent/.actors
+  # rhachet links `.claude` into the enrolled actor dir, so depcheck reaches the same
+  # host-local cache through it; the link is not source either
+  - .claude
+  # role dirs vendored from other repos import their own origin deps; only
+  # this repo own role dir is source that depcheck should attribute
+  - .agent/repo=*
+  - "!.agent/repo=.this"
