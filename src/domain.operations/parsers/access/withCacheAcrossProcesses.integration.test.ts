@@ -112,11 +112,38 @@ describe('withCacheAcrossProcesses', () => {
         );
         const fake = genFetchCounted({ replies: [{ value: 'acme-prod' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(0);
       });
     });
   });
+
+  given(
+    '[case1b] a fresh cache file for the key, and a caller that skips the cache',
+    () => {
+      when('[t0] the value is read with cache: skip', () => {
+        then(
+          'it fetches fresh past the file, then rewrites the file',
+          async () => {
+            const dir = genTempDir({ slug: 'cache-fresh-skip' });
+            const pathFile = join(dir, `${KEY}.json`);
+            await writeFile(pathFile, JSON.stringify({ value: 'acme-old' }));
+            const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
+            const get = withCacheAcrossProcesses(fake.fetch, {
+              dir,
+              ...OPTIONS,
+            });
+            expect(await get({ key: KEY, cache: 'skip' })).toEqual('acme-test');
+            expect(fake.calls()).toEqual(1);
+
+            // a later caller with no skip reads the fresh value, with no fetch
+            expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+            expect(fake.calls()).toEqual(1);
+          },
+        );
+      });
+    },
+  );
 
   given('[case2] a stale cache file for the key', () => {
     when('[t0] the value is read', () => {
@@ -131,8 +158,8 @@ describe('withCacheAcrossProcesses', () => {
         );
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(1);
         expect((await stat(pathFile)).mode & 0o777).toEqual(0o600); // owner only
       });
@@ -151,7 +178,7 @@ describe('withCacheAcrossProcesses', () => {
           const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
           const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
           const startedAt = Date.now();
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(Date.now() - startedAt).toBeLessThan(OPTIONS.staleMs / 2); // not the 60s stale bound
           expect(fake.calls()).toEqual(1);
           expect(await isPresent({ path: pathLock })).toEqual(false);
@@ -170,7 +197,7 @@ describe('withCacheAcrossProcesses', () => {
           await mkdir(pathLock);
           const fake = genFetchCounted({ replies: [{ value: 'acme-prod' }] });
           const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-          const value = get({ key: KEY });
+          const value = get({ key: KEY, cache: null });
 
           // the holder finishes: writes the cache and drops the lock
           await sleep(100);
@@ -197,7 +224,7 @@ describe('withCacheAcrossProcesses', () => {
         );
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(1);
       });
     });
@@ -216,7 +243,7 @@ describe('withCacheAcrossProcesses', () => {
             ],
           });
           const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-          const error = await getError(get({ key: KEY }));
+          const error = await getError(get({ key: KEY, cache: null }));
           expect(error.message).toEqual('security token invalid');
           expect(await isPresent({ path: join(dir, `${KEY}.lock`) })).toEqual(
             false,
@@ -224,7 +251,7 @@ describe('withCacheAcrossProcesses', () => {
           expect(await isPresent({ path: join(dir, `${KEY}.json`) })).toEqual(
             false,
           );
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(2);
         },
       );
@@ -243,8 +270,8 @@ describe('withCacheAcrossProcesses', () => {
           ...OPTIONS,
         });
         try {
-          expect(await get({ key: KEY })).toEqual('acme-test');
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(2);
         } finally {
           await chmod(root, 0o700);
@@ -260,8 +287,8 @@ describe('withCacheAcrossProcesses', () => {
         await writeFile(join(dir, `${KEY}.json`), '{"value": "acme-te');
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(1);
       });
     });
@@ -275,7 +302,7 @@ describe('withCacheAcrossProcesses', () => {
         );
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(1);
       });
     });
@@ -305,7 +332,7 @@ describe('withCacheAcrossProcesses', () => {
             dir,
             ...OPTIONS,
           });
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(1);
         } finally {
           spy.mockRestore();
@@ -323,8 +350,8 @@ describe('withCacheAcrossProcesses', () => {
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
         try {
-          expect(await get({ key: KEY })).toEqual('acme-test');
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(2);
           expect(await isPresent({ path: join(dir, `${KEY}.lock`) })).toEqual(
             false,
@@ -355,7 +382,7 @@ describe('withCacheAcrossProcesses', () => {
             return 'acme-test';
           };
           const get = withCacheAcrossProcesses(fetch, { dir, ...OPTIONS });
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(await isPresent({ path: pathLock })).toEqual(true);
         });
       });
@@ -371,7 +398,7 @@ describe('withCacheAcrossProcesses', () => {
           await mkdir(join(dir, `${KEY}.json`));
           const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
           const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(1);
           expect(await isPresent({ path: join(dir, `${KEY}.lock`) })).toEqual(
             false,
@@ -391,7 +418,7 @@ describe('withCacheAcrossProcesses', () => {
           dir: join(root, 'file', 'cache'),
           ...OPTIONS,
         });
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(fake.calls()).toEqual(1);
       });
     });
@@ -412,7 +439,7 @@ describe('withCacheAcrossProcesses', () => {
           const get = withCacheAcrossProcesses(fetch, { dir, ...OPTIONS });
           const startedAt = Date.now();
           const outcomes = await Promise.allSettled(
-            Array.from({ length: 10 }, () => get({ key: KEY })),
+            Array.from({ length: 10 }, () => get({ key: KEY, cache: null })),
           );
           const elapsedMs = Date.now() - startedAt;
           expect(outcomes.map((outcome) => outcome.status)).toEqual(
@@ -443,7 +470,7 @@ describe('withCacheAcrossProcesses', () => {
           staleMs: 300,
         });
         const startedAt = Date.now();
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect(Date.now() - startedAt).toBeGreaterThanOrEqual(300);
         expect(fake.calls()).toEqual(1);
       });
@@ -457,7 +484,7 @@ describe('withCacheAcrossProcesses', () => {
         await chmod(dir, 0o755);
         const fake = genFetchCounted({ replies: [{ value: 'acme-test' }] });
         const get = withCacheAcrossProcesses(fake.fetch, { dir, ...OPTIONS });
-        expect(await get({ key: KEY })).toEqual('acme-test');
+        expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
         expect((await stat(dir)).mode & 0o777).toEqual(0o700);
       });
     });
@@ -477,8 +504,8 @@ describe('withCacheAcrossProcesses', () => {
             dir: join(root, 'link'),
             ...OPTIONS,
           });
-          expect(await get({ key: KEY })).toEqual('acme-test');
-          expect(await get({ key: KEY })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
+          expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
           expect(fake.calls()).toEqual(2);
           expect(
             await isPresent({ path: join(pathTarget, `${KEY}.json`) }),
@@ -511,7 +538,7 @@ describe('withCacheAcrossProcesses', () => {
               ...OPTIONS,
             });
             const values = Promise.all(
-              Array.from({ length: 10 }, () => get({ key: KEY })),
+              Array.from({ length: 10 }, () => get({ key: KEY, cache: null })),
             );
 
             // every caller is now a waiter; kill the holder
@@ -548,7 +575,7 @@ describe('withCacheAcrossProcesses', () => {
               ...OPTIONS,
             });
             const outcomes = await Promise.allSettled(
-              Array.from({ length: 10 }, () => get({ key: KEY })),
+              Array.from({ length: 10 }, () => get({ key: KEY, cache: null })),
             );
             expect(
               outcomes.filter((outcome) => outcome.status === 'rejected'),
@@ -586,7 +613,7 @@ describe('withCacheAcrossProcesses', () => {
                 staleMs: 1_500,
               });
               const startedAt = Date.now();
-              expect(await get({ key: KEY })).toEqual('acme-test');
+              expect(await get({ key: KEY, cache: null })).toEqual('acme-test');
               expect(Date.now() - startedAt).toBeLessThan(1_000); // no spin, no wait to the deadline
               expect(fake.calls()).toEqual(1);
             } finally {

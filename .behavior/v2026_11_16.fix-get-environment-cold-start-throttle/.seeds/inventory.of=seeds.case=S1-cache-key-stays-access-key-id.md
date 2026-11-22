@@ -7,4 +7,4 @@ F1 ruled: keep the access key id as the cache key (no network call; an sts read 
 the shared cache keys on a hash of the resolved access key id. no sts call. fulcrum F1 closes.
 
 ## .landed
-- `.fulcrums/inventory.of=fulcrums.case=F1-cache-key-is-access-key-id-hash.md` verdict
+- `.fulcrums/inventory.of=fulcrums.case=F001-cache-key-is-access-key-id-hash.md` verdict

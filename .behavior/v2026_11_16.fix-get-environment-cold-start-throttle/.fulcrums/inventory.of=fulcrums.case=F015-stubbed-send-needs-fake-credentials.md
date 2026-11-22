@@ -1,4 +1,4 @@
-# F15 — a test that stubs `AccountClient.send` must now hold fake credentials
+# F015 — a test that stubs `AccountClient.send` must now hold fake credentials
 
 ## .the fork
 - a) keep the key read before `send`; document that a stub needs fake env credentials (taken)

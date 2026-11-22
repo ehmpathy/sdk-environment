@@ -94,10 +94,12 @@ const getCacheDirDefault = (): string =>
 
 /**
  * .what = shared cache + throttle retry tune
- * .why = ttl bounds how long a rename takes to show; retry outlasts the sdk's own 3 attempts;
+ * .why = ttl bounds how long a rename takes to show: an access key id belongs to one
+ *        principal in one account for life, so a key never maps to another account's name,
+ *        and only a rare rename ages; retry outlasts the sdk's own 3 attempts;
  *        a live holder's lock is never broken before the stale bound
  */
-const CACHE_TTL_MS = 15 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 60 * 1000;
 const LOCK_STALE_MS = 60 * 1000;
 const LOCK_POLL_MS = 75;
 const RETRY = { attempts: 6, baseMs: 250, capMs: 4000 };
@@ -108,10 +110,12 @@ const RETRY = { attempts: 6, baseMs: 250, capMs: 4000 };
  * .note = the name is shared across processes via a file cache keyed by the
  *         caller's access key id, so N cold processes make one aws call;
  *         a throttle reply backs off and retries
+ * .note = cache 'skip' asks aws fresh past the shared file, then rewrites it
  */
 export const getEnvAccessFromAwsAccountName = async (
   input?: {
     map?: AwsAccountPatternMap;
+    cache?: 'skip' | null;
   },
   context?: {
     sdkAwsAccount?: SdkAwsAccount;
@@ -146,6 +150,7 @@ export const getEnvAccessFromAwsAccountName = async (
         ? await getAccountNameDirect()
         : await getAccountNameShared({
             key: asCacheKeyFromAccessKeyId({ accessKeyId }),
+            cache: input?.cache ?? null,
           });
 
     if (!accountName) return null;

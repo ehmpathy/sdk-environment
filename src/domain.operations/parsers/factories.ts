@@ -1,6 +1,7 @@
 import type { EnvironmentAccessTier } from '@src/domain.objects/EnvironmentAccessTier';
 import type { EnvironmentCommitSlug } from '@src/domain.objects/EnvironmentCommitSlug';
 import type { EnvironmentServerTier } from '@src/domain.objects/EnvironmentServerTier';
+import type { ParserContext } from '@src/domain.operations/getEnvironment/getEnvironment';
 
 import {
   type AwsAccountAliasMap,
@@ -35,9 +36,14 @@ export const fromAwsAccountAlias = (input?: {
  */
 export const fromAwsAccountName = (input?: {
   map?: AwsAccountPatternMap;
-}): (() => Promise<EnvironmentAccessTier | null>) => {
-  const parser = (): Promise<EnvironmentAccessTier | null> =>
-    getEnvAccessFromAwsAccountName(input);
+}): ((context?: ParserContext) => Promise<EnvironmentAccessTier | null>) => {
+  const parser = (
+    context?: ParserContext,
+  ): Promise<EnvironmentAccessTier | null> =>
+    getEnvAccessFromAwsAccountName({
+      map: input?.map,
+      cache: context?.cache ?? null,
+    });
   Object.defineProperty(parser, 'name', { value: 'fromAwsAccountName' });
   return parser;
 };

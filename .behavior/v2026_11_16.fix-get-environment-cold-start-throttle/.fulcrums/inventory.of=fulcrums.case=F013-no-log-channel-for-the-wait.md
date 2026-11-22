@@ -1,4 +1,4 @@
-# F13 — the lock wait and the retry emit no log
+# F013 — the lock wait and the retry emit no log
 
 ## .the fork
 - a) emit no log; bound the wait instead (holder gone → direct fetch; 60s deadline) and document it in the readme (taken)

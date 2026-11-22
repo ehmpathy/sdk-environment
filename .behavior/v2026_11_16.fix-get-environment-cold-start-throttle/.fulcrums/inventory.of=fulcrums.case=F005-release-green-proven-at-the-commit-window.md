@@ -1,4 +1,4 @@
-# F5 — release green is proven at the commit window, not at execution
+# F005 — release green is proven at the commit window, not at execution
 
 ## .the fork
 - a) execution stone passes on local gates for this fix; `release --watch` green is proven once the pr exists, after the director's commit window (taken)

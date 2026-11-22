@@ -1,4 +1,4 @@
-# F6 — the husky hooks in the tree are not this fix
+# F006 — the husky hooks in the tree are not this fix
 
 ## .the fork
 - a) leave `.husky/check.secrets.sh`, `check.timestamps.sh`, `check.timestamps.lock.sh` (untracked) and the `.husky/pre-commit` edit out of this fix; stage only this fix's files at the window (taken)

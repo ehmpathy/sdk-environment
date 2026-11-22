@@ -10,6 +10,7 @@ export type { EnvironmentServerTier } from './domain.objects/EnvironmentServerTi
 export type {
   AsyncParser,
   Parser,
+  ParserContext,
   SyncParser,
 } from './domain.operations/getEnvironment/getEnvironment';
 // main entry point

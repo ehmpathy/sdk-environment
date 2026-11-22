@@ -379,6 +379,8 @@ const delLockIfAbandoned = async (input: {
  *         break one dead lock within the same instant) costs one extra fetch,
  *         benign since the fetch is a read and the write is atomic
  * .note = any fs fault, or a cache dir that is not ours, runs the fetch direct, as before
+ * .note = cache 'skip' never reads the shared file: it fetches fresh, then writes
+ *         the file, so later callers on this host read the fresh value
  */
 export const withCacheAcrossProcesses = <T>(
   fetch: () => Promise<T>,
@@ -389,8 +391,8 @@ export const withCacheAcrossProcesses = <T>(
     pollMs: number;
     isQueueKeptOnError: (input: { error: unknown }) => boolean;
   },
-): ((input: { key: string }) => Promise<T>) => {
-  return async (input: { key: string }): Promise<T> => {
+): ((input: { key: string; cache: 'skip' | null }) => Promise<T>) => {
+  return async (input: { key: string; cache: 'skip' | null }): Promise<T> => {
     const pathFile = join(options.dir, `${input.key}.json`);
     const pathLock = join(options.dir, `${input.key}.lock`);
     const pathFail = join(options.dir, `${input.key}.failed`);
@@ -408,6 +410,9 @@ export const withCacheAcrossProcesses = <T>(
       await setCache({ path: pathFile, value });
       return value;
     };
+
+    // a caller that asked to skip the cache fetches fresh, then shares
+    if (input.cache === 'skip') return getOneDirectThenShare();
 
     /**
      * .what = fetch as the lock holder, write the cache, then release the lock

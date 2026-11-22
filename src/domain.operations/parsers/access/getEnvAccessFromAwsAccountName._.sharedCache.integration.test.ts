@@ -114,6 +114,51 @@ describe('getEnvAccessFromAwsAccountName.sharedCache', () => {
     });
   });
 
+  given(
+    '[case3b] a fresh cache holds an old name, and the caller skips the cache',
+    () => {
+      when(
+        '[t0] getEnvAccessFromAwsAccountName is called with cache: skip',
+        () => {
+          then(
+            'it asks aws past the file, returns the fresh tier, and rewrites the file',
+            async () => {
+              const cacheDir = genTempDir({ slug: 'aws-name-skip' });
+              const accessKeyId = 'AKIAEXAMPLESKIP';
+              await writeFile(
+                join(
+                  cacheDir,
+                  `${asCacheKeyFromAccessKeyId({ accessKeyId })}.json`,
+                ),
+                JSON.stringify({ value: 'acme-test' }),
+              );
+              const sdk = genSdkAwsAccountFake({
+                accessKeyId,
+                reply: { accountName: 'acme-prod' },
+              });
+              expect(
+                await getEnvAccessFromAwsAccountName(
+                  { cache: 'skip' },
+                  { sdkAwsAccount: sdk, cacheDir },
+                ),
+              ).toEqual('prod');
+              expect(sdk.calls()).toEqual(1);
+
+              // a later caller with no skip reads the fresh name, with no aws call
+              expect(
+                await getEnvAccessFromAwsAccountName(undefined, {
+                  sdkAwsAccount: sdk,
+                  cacheDir,
+                }),
+              ).toEqual('prod');
+              expect(sdk.calls()).toEqual(1);
+            },
+          );
+        },
+      );
+    },
+  );
+
   given('[case4] the real aws sdk seam, with env credentials', () => {
     when('[t0] a fresh cache holds a name under the env access key', () => {
       then(

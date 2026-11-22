@@ -1,4 +1,4 @@
-# F20 — the `.claude` actor migration is held out of the upgrade bump
+# F020 — the `.claude` actor migration is held out of the upgrade bump
 
 ## .the fork
 - a) the rhachet 1.51 bump rides in #18, but its `.claude` migration stays out: the deletion of `.claude/settings.json`, the `.claude` symlink, and `.agent/.actors/` (taken)

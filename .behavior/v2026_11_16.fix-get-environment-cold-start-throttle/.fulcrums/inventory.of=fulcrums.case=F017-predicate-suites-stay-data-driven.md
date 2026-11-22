@@ -1,4 +1,4 @@
-# F17 — the predicate unit suites stay data-driven, not given/when/then
+# F017 — the predicate unit suites stay data-driven, not given/when/then
 
 ## .the fork
 - a) `isThrottleError`, `isServerTransientError`, `isCredentialError`, `isModuleNotFoundError` suites run a `TEST_CASES` table through `test(description)` (taken)

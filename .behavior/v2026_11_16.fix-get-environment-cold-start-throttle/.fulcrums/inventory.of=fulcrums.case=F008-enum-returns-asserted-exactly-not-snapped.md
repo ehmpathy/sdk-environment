@@ -1,4 +1,4 @@
-# F8 — tier returns asserted exactly, not snapped
+# F008 — tier returns asserted exactly, not snapped
 
 ## .the fork
 - a) the new tests assert each tier return with `toEqual('test')` / `toBeNull()` (taken)

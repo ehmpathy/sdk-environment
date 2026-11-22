@@ -1,4 +1,4 @@
-# F12 — the throttle retry is bounded; an outlasted budget surfaces aws's own error
+# F012 — the throttle retry is bounded; an outlasted budget surfaces aws's own error
 
 ## .the fork
 - a) 6 attempts with full jitter, cap 4s; after the last, the raw `TooManyRequestsException` surfaces as-is (taken)

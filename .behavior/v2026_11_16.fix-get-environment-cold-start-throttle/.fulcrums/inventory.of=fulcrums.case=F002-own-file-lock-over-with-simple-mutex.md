@@ -1,4 +1,4 @@
-# F2 — own file lock over with-simple-mutex
+# F002 — own file lock over with-simple-mutex
 
 ## .the fork
 - a) own `mkdir` lock with the holder's pid in `withCacheAcrossProcesses.ts` (taken)

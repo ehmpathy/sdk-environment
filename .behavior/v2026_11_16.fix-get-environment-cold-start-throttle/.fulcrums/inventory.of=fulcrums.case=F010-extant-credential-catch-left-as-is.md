@@ -1,4 +1,4 @@
-# F10 — the name parser's credential catch is extracted; the alias parser's is left as main has it
+# F010 — the name parser's credential catch is extracted; the alias parser's is left as main has it
 
 ## .the fork
 - a) extract the name parser's allowlist to `isCredentialError` (shape reads, a TypeError never matches); leave the alias parser's inline copy untouched (taken)

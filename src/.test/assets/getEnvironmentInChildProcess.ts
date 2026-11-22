@@ -79,8 +79,8 @@ const main = async (): Promise<void> => {
   // the access tier comes from the aws account name alone; server and commit are fixed
   const server: EnvironmentServerTier = 'local@unix';
   const commit: EnvironmentCommitSlug = 'v1.0.0@abc123';
+  // no cache: 'skip' — a child's in-process cache is cold, and a skip would ask aws past the shared file
   const environment = await getEnvironment.filled({
-    cache: 'skip',
     parsers: {
       access: [fromAwsAccountName()],
       server: [() => server],

@@ -1,4 +1,4 @@
-# F3 — hof wrappers take (fn, options)
+# F003 — hof wrappers take (fn, options)
 
 ## .the fork
 - a) `withRetryOnThrottle(fetch, options)` and `withCacheAcrossProcesses(fetch, options)`: wrapped fn first, config second (taken)
