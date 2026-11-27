@@ -1,0 +1,199 @@
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-grounded-in-reality"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-grounded-in-reality"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-experience-coverage"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-requirements"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-requirements"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-requirements"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-assumptions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-assumptions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"poured","level":1}
+{"stone":"1.vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (1 > 0); wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"blocker.1","given":"1.vision._.review.i001.815dceaf6616f8fed8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition blocker.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"1.vision._.review.i001.815dceaf6616f8fed8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.2","given":"1.vision._.review.i001.815dceaf6616f8fed8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.3","given":"1.vision._.review.i001.815dceaf6616f8fed8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.3 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.4","given":"1.vision._.review.i001.815dceaf6616f8fed8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.4 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"1.vision._.review.i002.d1fb08244f7d1319f8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.2","given":"1.vision._.review.i002.d1fb08244f7d1319f8.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.1","given":"1.vision._.review.i002.d1fb08244f7d1319f8.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.1 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"1.vision._.review.i003.2825771390f9ac744c.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"blocked"}
+{"stone":"1.vision","status":"approved"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"passed"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-pruned-yagni"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-backcompat"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-pruned-backcompat"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-mechanisms"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-mechanisms"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-consistent-mechanisms"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-conventions"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-conventions"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-consistent-conventions"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-adherance"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-adherance"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: behavior-declaration-adherance"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: role-standards-adherance"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: role-standards-adherance"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: role-standards-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: role-standards-coverage"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: role-standards-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"poured","level":1}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (6 > 0)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"blocker.1","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"blocker.2","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction blocker.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"behavior-intent-coverage","about":"blocker.1","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r008._.given.by_peer.behavior-intent-coverage.md","severity":"better","reason":"conceded review.peer: behavior-intent-coverage blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"behavior-intent-coverage","about":"blocker.2","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r008._.given.by_peer.behavior-intent-coverage.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F03-stone-delivers-the-change-not-the-pr.md","reason":"disputed review.peer: behavior-intent-coverage blocker.2"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"behavior-intent-coverage","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r008._.given.by_peer.behavior-intent-coverage.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F04-nano-vision-holds-its-layers.md","reason":"disputed review.peer: behavior-intent-coverage nitpick.1"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"blocker.1","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"blocker.2","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards blocker.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i001.b50c381acb5e944c72.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: behavior-intent-coverage"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: ergo-friction-hazards"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-failhides"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-opport-decomposition"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-maintenance"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-behavior"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (2 > 0)"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer.unabsorbed","reason":"peer review awaits feedbackAbsorption: ergo-friction-hazards, mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer.unabsorbed","reason":"peer review awaits feedbackAbsorption: ergo-friction-hazards, mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer.unabsorbed","reason":"peer review awaits feedbackAbsorption: ergo-friction-hazards, mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"blocker.1","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction nitpick.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"blocker.1","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i002.7479c37fb9d83797d5.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: ergo-friction-hazards"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-failhides"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-smell-scopeleaks"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-maintenance"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-behavior"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: behavior-intent-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (2 > 0)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"blocker.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-decode-friction","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r003._.given.by_peer.mech-decode-friction.md","severity":"better","reason":"conceded review.peer: mech-decode-friction nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"ergo-friction-hazards","about":"blocker.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r009._.given.by_peer.ergo-friction-hazards.md","severity":"better","reason":"conceded review.peer: ergo-friction-hazards blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-decode-friction"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: ergo-friction-hazards"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-failhides"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-maintenance"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-behavior"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: behavior-intent-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"poured","level":3}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (3 > 0), after 2 blockers shed (0 disputed + 2 conceded better), 1 nitpick shed (0 disputed + 1 conceded better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.1","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.2","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.3","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.4","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.4 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.5","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.5 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.6","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.6 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.7","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.7 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.8","given":"5.1.execution.from_vision._.review.i004.6261f111060af191b6.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.8 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-failhides","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r002._.given.by_peer.mech-failhides.md","severity":"better","reason":"conceded review.peer: mech-failhides nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"mech-failhides","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r002._.given.by_peer.mech-failhides.md","severity":"better","reason":"conceded review.peer: mech-failhides nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"arch-hazards-maintenance","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r006._.given.by_peer.arch-hazards-maintenance.md","severity":"better","reason":"conceded review.peer: arch-hazards-maintenance nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"arch-hazards-behavior","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r007._.given.by_peer.arch-hazards-behavior.md","severity":"better","reason":"conceded review.peer: arch-hazards-behavior nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"arch-hazards-behavior","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r007._.given.by_peer.arch-hazards-behavior.md","severity":"better","reason":"conceded review.peer: arch-hazards-behavior nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"behavior-intent-coverage","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r008._.given.by_peer.behavior-intent-coverage.md","severity":"better","reason":"conceded review.peer: behavior-intent-coverage nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"behavior-intent-coverage","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i003.93b46cc69d710abd49.r008._.given.by_peer.behavior-intent-coverage.md","severity":"better","reason":"conceded review.peer: behavior-intent-coverage nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-behavior-intent"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-arch-defects"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: mech-failhides"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-maintenance"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: arch-hazards-behavior"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: behavior-intent-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (7 > 0), after 2 blockers shed (0 disputed + 2 conceded better), 8 nitpicks shed (0 disputed + 8 conceded better)"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"blocker.1","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F06-step-stays-in-the-practice-owned-workflow.md","reason":"disputed review.peer: enroll-impl-arch-defects blocker.1"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"blocker.2","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F07-prior-worktree-edits-stay-out-of-the-pr.md","reason":"disputed review.peer: enroll-impl-arch-defects blocker.2"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F01-pin-npm-major-not-exact.md","reason":"disputed review.peer: enroll-impl-arch-defects nitpick.1"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F05-clamp-ships-as-a-pr-gate.md","reason":"disputed review.peer: enroll-impl-arch-defects nitpick.2"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F06-step-stays-in-the-practice-owned-workflow.md","reason":"disputed review.peer: enroll-impl-arch-defects nitpick.3"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.1","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.2","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.3","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.4","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.4 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.5","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.5 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.4","given":"5.1.execution.from_vision._.review.i005.869f332acdbfedac03.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.4 (better)"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-behavior-intent"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-arch-defects"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (4 > 0), after 2 blockers shed (0 disputed + 2 conceded better), 8 nitpicks shed (0 disputed + 8 conceded better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.1","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"blocker.2","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent blocker.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.3 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-behavior-intent","about":"nitpick.4","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r010._.given.by_peer.enroll-impl-behavior-intent.md","severity":"better","reason":"conceded review.peer: enroll-impl-behavior-intent nitpick.4 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-arch-defects","about":"blocker.1","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","severity":"better","reason":"conceded review.peer: enroll-impl-arch-defects blocker.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"blocker.2","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F06-step-stays-in-the-practice-owned-workflow.md","reason":"disputed review.peer: enroll-impl-arch-defects blocker.2"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-arch-defects","about":"nitpick.1","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","severity":"better","reason":"conceded review.peer: enroll-impl-arch-defects nitpick.1 (better)"}
+{"stone":"5.1.execution.from_vision","status":"conceded","reviewer":"enroll-impl-arch-defects","about":"nitpick.2","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","severity":"better","reason":"conceded review.peer: enroll-impl-arch-defects nitpick.2 (better)"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"nitpick.3","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F07-prior-worktree-edits-stay-out-of-the-pr.md","reason":"disputed review.peer: enroll-impl-arch-defects nitpick.3"}
+{"stone":"5.1.execution.from_vision","status":"disputed","reviewer":"enroll-impl-arch-defects","about":"nitpick.4","given":"5.1.execution.from_vision._.review.i006.31d5c35c5ab72b5bc1.r011._.given.by_peer.enroll-impl-arch-defects.md","fulcrum":".behavior/v2026_11_25.fix-publish-npm-engine/.fulcrums/inventory.of=fulcrums.case=F01-pin-npm-major-not-exact.md","reason":"disputed review.peer: enroll-impl-arch-defects nitpick.4"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-behavior-intent"}
+{"stone":"5.1.execution.from_vision","status":"absorbed","reason":"absorbed review.peer: enroll-impl-arch-defects"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"passed"}
+{"stone":"5.3.verification","status":"blocked"}
+{"stone":"5.3.verification","status":"blocked"}
