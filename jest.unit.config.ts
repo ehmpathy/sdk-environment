@@ -33,6 +33,7 @@ const config: Config = {
     '**/*.test.ts',
     '!**/*.acceptance.test.ts',
     '!**/*.integration.test.ts',
+    '!**/.agent/.actors/**', // rhachet host-local state; holds a scratch clone of this repo, whose suites are not ours
     '!**/.agent/.cache/**',
     '!**/.yalc/**',
   ],

@@ -1,0 +1,415 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`verify.publish-npm-pin given: [case1] the repo workflow, which pins npm@11, on the repo .nvmrc node when: [t0] the skill runs with no flags then: its masked live stdout holds the shape a maintainer sees on the real workflow and registry 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec 11
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@11
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v<node>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case2] an npm whose engine excludes the .nvmrc node, as npm 12.2.3 did for v0.1.6 when: [t0] the skill runs with --spec file:<an npm whose engine needs node >=99> then: stderr names the engine mismatch, the npm ranges, and the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   └─ ✋ ConstraintError: npm@file:<fake-npm> does not run on node v<node>
+      ├─ npm error notsup Required: {"node":">=99.0.0"}
+      ├─ npm error notsup Actual:   {"npm":"<npm>","node":"v<node>"}
+      └─ fix: pin an npm whose engine accepts v<node>, or bump .nvmrc into its range
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case3] the installed npm version against the 11.5.1 oidc floor when: [t0] the installed npm is 10.9.4, below the floor then: it exits 2 and names the version, the floor, and the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 10.9.4
+   └─ ✋ ConstraintError: npm 10.9.4 < 11.5.1, too old for oidc
+      └─ fix: pin an npm >= 11.5.1
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case3] the installed npm version against the 11.5.1 oidc floor when: [t1] the installed npm is 12.0.0-pre.1, a prerelease above the floor then: it exits 0, since a prerelease of 12 clears 11.5.1 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 12.0.0-pre.1
+   └─ ✨ npm 12.0.0-pre.1 runs on node v<node>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case3] the installed npm version against the 11.5.1 oidc floor when: [t2] the installed npm is 11.5.1-pre.1, a prerelease of the floor itself then: it exits 2, since semver ranks a prerelease below its release 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.5.1-pre.1
+   └─ ✋ ConstraintError: npm 11.5.1-pre.1 < 11.5.1, too old for oidc
+      └─ fix: pin an npm >= 11.5.1
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case3] the installed npm version against the 11.5.1 oidc floor when: [t3] the installed npm is 11.5.1+build.7, the floor with build metadata then: it exits 0, since build metadata carries no rank 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.5.1+build.7
+   └─ ✨ npm 11.5.1+build.7 runs on node v<node>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case4] an npm version the registry does not hold when: [t0] the skill runs with --spec 0.0.0-absent against a registry that holds only 1.0.0 then: stderr names the absent spec and how to list real ones 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec 0.0.0-absent
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@0.0.0-absent
+   └─ ✋ ConstraintError: the registry holds no npm that matches '0.0.0-absent'
+      └─ fix: pick a published spec; list them with: npm view npm versions
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case5] a caller who asks for help when: [t0] the skill runs with --help then: it exits 0 and prints usage and exit codes 1`] = `
+"🐢 heres the wave...
+
+.what = run the publish workflow's npm upgrade step on the .nvmrc node
+
+.why  = the publish job runs only on a release tag, so pr ci never
+        exercises its \`npm install -g npm@<spec>\` line. this skill runs
+        that exact line, read from the workflow, on the node .nvmrc
+        names, into a throwaway prefix — so an engine mismatch fails
+        loud before merge, not at the tag.
+
+usage:
+  rhx verify.publish-npm-pin                  # the spec in the workflow
+  rhx verify.publish-npm-pin --spec latest    # a spec of your choice
+
+options:
+  --spec <spec>   the npm spec to install (default: the one in the workflow)
+  --help, -h      print this contract and exit 0
+
+guarantee:
+  - reads the spec from .github/workflows/.publish-npm.yml unless --spec;
+    a \`\${{ … }}\` spec is refused, since only the tag run can expand it
+  - with --spec, always runs the install: an explicit spec is a request to try it
+  - with the workflow's spec, mirrors its guard: where the .nvmrc node's own
+    npm is already >= 11.5.1, the tag skips the upgrade, and so does this
+  - runs on the .nvmrc node: the current node if it matches (an exact pin,
+    or a loose \`22\` / \`22.21\` / \`22.x\`), else fnm's
+  - installs npm into a temp prefix; installs no node, touches no global npm
+  - exit 0 = npm installed and >= 11.5.1 (the oidc minimum), or the step skips
+  - exit 1 = malfunction (install failed for a reason other than engine or spec)
+  - exit 2 = constraint (EBADENGINE, no such npm, npm < 11.5.1, an absent input, bad flag)
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case6] a caller who passes bad flags when: [t0] the skill runs with an unknown flag then: it exits 2 with the flag named and the help hint 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: unknown flag --bogus
+   └─ fix: the flags are --spec <spec> and --help; see rhx verify.publish-npm-pin --help
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case6] a caller who passes bad flags when: [t1] the skill runs with --spec and no value then: it exits 2 and names the fix 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: --spec needs a value
+   └─ fix: rhx verify.publish-npm-pin --spec <spec>, e.g. --spec 11
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case6] a caller who passes bad flags when: [t2] the skill runs with --skill and no value then: it exits 2 with a qualified error, not a raw shell fault 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: --skill needs a value
+   └─ fix: call via rhx verify.publish-npm-pin, which passes --skill itself
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case6] a caller who passes bad flags when: [t3] the skill runs with --spec= and no value then: it exits 2 and names the fix 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: --spec needs a value
+   └─ fix: rhx verify.publish-npm-pin --spec <spec>, e.g. --spec 11
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case6] a caller who passes bad flags when: [t4] the skill runs with --spec followed by another flag then: it exits 2 and reads the flag as an absent value, not as spec "--skill" 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: --spec needs a value
+   └─ fix: rhx verify.publish-npm-pin --spec <spec>, e.g. --spec 11
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t0] the workflow holds no npm upgrade line then: it exits 2 and names both ways forward 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: no 'npm install -g npm@<spec>' line in <repo>/.github/workflows/.publish-npm.yml
+   └─ fix: if the workflow still upgrades npm, write the step as 'npm install -g npm@<spec>'; if it no longer does, there is no pin left to verify
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t1] the repo has no .nvmrc then: it exits 2 and names the absent file 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: no .nvmrc at <repo>; it names the node the publish job runs on
+   └─ fix: run from a repo with a .nvmrc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t2] the .nvmrc names another node and fnm is absent then: it exits 2 and names both fixes 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: node is v<node>, .nvmrc names v0.0.1, and fnm is absent
+   └─ fix: switch to node v0.0.1, or install fnm (https://github.com/Schniz/fnm)
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t3] the dir is not in a git repo then: it exits 2 and names the fix 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: <dir> is not in a git repo
+   └─ fix: run from the repo whose publish workflow you want to check
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t4] the repo has no publish workflow then: it exits 2 and names the absent file 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: no publish workflow at <repo>/.github/workflows/.publish-npm.yml
+   └─ fix: pass --spec <spec>, or run from a repo with the workflow
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t5] the workflow holds several npm upgrade lines then: it exits 2 and lists each spec, rather than pick one 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: several 'npm install -g npm@<spec>' lines in <repo>/.github/workflows/.publish-npm.yml (11, latest)
+   └─ fix: pass --spec <spec> for the one to check
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t6] the .nvmrc names another node and fnm lacks it then: it exits 2 and names the install command, rather than install a node itself 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: fnm holds no node v0.0.1
+   └─ fix: fnm install v0.0.1
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t7] node is absent from PATH then: it exits 2 and names the node to install 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: node is absent from PATH
+   └─ fix: install node v0.0.1, or fnm (https://github.com/Schniz/fnm)
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t8] the .nvmrc names the current node with no "v" prefix then: it runs on the current node, with no fnm needed, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: <major>.<minor>.<patch> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node <major>.<minor>.<patch>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t9] the .nvmrc names another node and fnm holds it then: it runs the step through fnm exec and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v0.0.1 (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v0.0.1, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t10] the .nvmrc holds a loose major, as setup-node accepts then: it counts the current node as a match, with no fnm needed, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: <major> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node <major>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t11] the workflow spec is an expression then: it exits 2 and asks for a literal spec, rather than install a guess 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: the workflow's npm spec '\${{ env.NPM_SPEC }}' is an expression, which only the tag run can expand
+   └─ fix: pin a literal spec (e.g. npm@11), or pass --spec <value>
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t12] the .nvmrc holds a major.minor, as setup-node accepts then: it counts the current node as a match, with no fnm needed, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: <major>.<minor> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node <major>.<minor>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case7] a repo whose inputs are incomplete or vary when: [t13] the .nvmrc holds an alias, lts/*, and fnm is absent then: it never matches the alias to the current node, and asks for fnm to expand it 1`] = `
+"🐢 bummer dude...
+
+✋ ConstraintError: node is v<node>, .nvmrc names lts/*, and fnm is absent
+   └─ fix: install fnm (https://github.com/Schniz/fnm), which expands the alias lts/*
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case8] a registry the install cannot reach when: [t0] the skill runs --spec 11 against a dead local port then: stderr shows the npm error tail and a fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec 11
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@11
+   └─ 💥 MalfunctionError: npm install failed for a reason other than engine or spec
+      ├─ npm error code ECONNREFUSED
+      ├─ npm error <npm prose, 5 lines>
+      └─ fix: read the npm errors above; on a network or registry fault, re-run
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case9] an installed npm that cannot start when: [t0] the skill runs with --spec file:<a fake npm whose bin exits 3> then: it exits 1 (malfunction), names the fault, shows npm stderr, and a fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   └─ 💥 MalfunctionError: the installed npm did not report its version
+      ├─ fake npm: cannot start
+      └─ fix: re-run; if it repeats, the npm@file:<fake-npm> build does not start on node v<node>
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case10] a workflow whose upgrade line is quoted, beside a commented-out one when: [t0] the skill reads the spec from the workflow then: it takes the live line, stops the spec at the quote, skips the comment, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v0.0.1 (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v0.0.1, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case11] a .nvmrc node whose own npm already clears the floor when: [t0] the skill reads the spec from the workflow then: it exits 0 and reports the tag skips the step, as the workflow guard does 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec 11
+   ├─ node: v0.0.1 (.nvmrc)
+   ├─ step: npm install -g npm@11
+   ├─ bundled: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> >= 11.5.1 already, so the tag skips this step
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case11] a .nvmrc node whose own npm already clears the floor when: [t1] the skill runs with --spec, on that same node then: it runs the install anyway, since an explicit spec is a request to try it, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v0.0.1 (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v0.0.1, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case12] an installed npm that prints a notice to stderr when: [t0] the skill reads the installed version then: it reads the version from stdout alone and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v<node>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case13] the call shape rhx sends when: [t0] the skill runs with --skill <name> first, then --spec=<value> then: it skips the --skill pair, reads the = form, and exits 0 1`] = `
+"🐢 righteous!
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   ├─ installed: npm 11.<minor>.<patch>
+   └─ ✨ npm 11.<minor>.<patch> runs on node v<node>, >= 11.5.1 for oidc
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case14] the public registry, asked for an npm it does not hold when: [t0] the skill runs with --spec 0.0.0-absent, live then: it exits 2 on the registry's real ETARGET, and names the spec and how to list real ones 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec 0.0.0-absent
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@0.0.0-absent
+   └─ ✋ ConstraintError: the registry holds no npm that matches '0.0.0-absent'
+      └─ fix: pick a published spec; list them with: npm view npm versions
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case15] the public registry, asked for npm 12.2.3, whose engine broke the v0.1.6 tag when: [t0] the skill runs with --spec 12.2.3 on a node outside its engine, live then: it exits 2 on npm's real EBADENGINE, with the real Required range and the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec 12.2.3
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@12.2.3
+   └─ ✋ ConstraintError: npm@12.2.3 does not run on node v<node>
+      ├─ npm error notsup Required: {"node":"^22.22.2 || ^24.15.0 || >=26.0.0"}
+      ├─ npm error notsup Actual:   {"npm":"<npm>","node":"v<node>"}
+      └─ fix: pin an npm whose engine accepts v<node>, or bump .nvmrc into its range
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case16] a host fault before the install when: [t0] the npm beside the .nvmrc node cannot report its version then: it exits 1 (malfunction) under the run tree, as case9 does, with that npm stderr as a branch and a fix 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec 11
+   ├─ node: v0.0.1 (.nvmrc)
+   ├─ step: npm install -g npm@11
+   └─ 💥 MalfunctionError: the npm beside node v0.0.1 did not report its version
+      ├─ fake bundled npm: cannot start
+      └─ fix: check the node install, then re-run
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case16] a host fault before the install when: [t1] the publish workflow cannot be read then: it exits 1 (malfunction), names the file, and the fix, with no raw tool fault above it 1`] = `
+"🐢 bummer dude...
+
+💥 MalfunctionError: could not read <repo>/.github/workflows/.publish-npm.yml
+   └─ fix: check the file's read permission, then re-run
+"
+`;
+
+exports[`verify.publish-npm-pin given: [case16] a host fault before the install when: [t2] the temp dir for the npm prefix cannot be made then: it exits 1 (malfunction), names the dir it tried, and TMPDIR in the fix, with no raw tool fault above it 1`] = `
+"🐢 bummer dude...
+
+🐚 verify.publish-npm-pin --spec file:<fake-npm>
+   ├─ node: v<node> (.nvmrc)
+   ├─ step: npm install -g npm@file:<fake-npm>
+   └─ 💥 MalfunctionError: could not make a temp dir under /nonexistent/verify-pin-tmpdir for the npm prefix
+      └─ fix: check that TMPDIR exists and has free space, then re-run
+"
+`;
