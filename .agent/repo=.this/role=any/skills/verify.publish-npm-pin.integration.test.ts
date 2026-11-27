@@ -1,4 +1,4 @@
-import { MalfunctionError } from 'helpful-errors';
+import { ConstraintError, MalfunctionError } from 'helpful-errors';
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
 
 import { spawn, spawnSync } from 'node:child_process';
@@ -44,21 +44,61 @@ const runSkill = (input: {
 };
 
 /**
+ * .what = fold each run of masked npm prose branches into one branch that keeps the count
+ * .why = seven identical placeholder lines read as noise; the count still shows a change in npm's tail
+ */
+const asNpmProseRunsFolded = (input: { output: string }): string =>
+  input.output.replace(/(?:( *)├─ npm error <npm prose>\n)+/g, (run: string, indent: string) =>
+    `${indent}├─ npm error <npm prose, ${run.split('\n').length - 1} lines>\n`,
+  );
+
+/**
  * .what = mask the fields that vary by run, host, registry state, or npm release
  * .why = a snapshot must hold the shape a human sees, not a temp path or npm's advice prose
  */
 const asSnapshotSafe = (input: { output: string }): string =>
-  input.output
-    .replace(/npm 11\.\d+\.\d+/g, 'npm 11.<minor>.<patch>')
+  asNpmProseRunsFolded({ output: asSnapshotUnfolded({ output: input.output }) });
+
+/**
+ * .what = the node versions that vary by host or by a .nvmrc bump: the test's own node, and the repo's .nvmrc
+ * .why = only these are masked; a hardcoded fixture node (v0.0.1) stays literal, so a mismatch reads as one
+ */
+const NODE_VERSIONS_VOLATILE = [
+  ...new Set([process.version, fs.readFileSync(path.join(REPO_ROOT, '.nvmrc'), 'utf-8').trim()]),
+];
+
+/**
+ * .what = an output with each volatile node version swapped for `v<node>`
+ * .why = a snapshot must hold on any host node and across a .nvmrc bump
+ */
+const asHostNodeMasked = (input: { output: string }): string =>
+  NODE_VERSIONS_VOLATILE.reduce((output, version) => output.split(version).join('v<node>'), input.output);
+
+/**
+ * .what = a node pin with its digits swapped for the name of each segment
+ * .why = the loose-pin cases prove the pin's shape (22, 22.21, 22.21.0); the host's digits are noise
+ */
+const asNodePinShape = (input: { pin: string }): string =>
+  ['<major>', '<minor>', '<patch>'].slice(0, input.pin.split('.').length).join('.');
+
+/**
+ * .what = the per-line masks that asSnapshotSafe applies before it folds prose runs
+ * .why = each mask targets one volatile field, so the fold reads the masked lines alone
+ * .note = a version with a prerelease or build tail is a hardcoded fixture, so it stays literal
+ */
+const asSnapshotUnfolded = (input: { output: string }): string =>
+  asHostNodeMasked({ output: input.output })
+    .replace(/npm 11\.\d+\.\d+(?![-+\w])/g, 'npm 11.<minor>.<patch>')
+    .replace(/(node:|runs on node) (\d+(?:\.\d+){0,2})(?= \(\.nvmrc\)|,)/g, (_match: string, lead: string, pin: string) =>
+      `${lead} ${asNodePinShape({ pin })}`,
+    )
     .replace(/\/\S*\/\.npm\/_logs\/\S+/g, '<npm-log>')
     .replace(/no \.nvmrc at \S+;/g, 'no .nvmrc at <repo>;')
-    .replace(/(in|at) \S+\.publish-npm\.yml/g, '$1 <repo>/.github/workflows/.publish-npm.yml')
+    .replace(/(in|at|read) \S+\.publish-npm\.yml/g, '$1 <repo>/.github/workflows/.publish-npm.yml')
     .replace(/\S+ is not in a git repo/g, '<dir> is not in a git repo')
-    .replace(/node is v[\d.]+,/g, 'node is <node>,')
     .replace(/npm@file:\S+/g, 'npm@file:<fake-npm>')
     .replace(/--spec file:\S+/g, '--spec file:<fake-npm>')
     .replace(/(├─ npm error) (?!code |notsup ).*/g, '$1 <npm prose>')
-    .replace(/v\d+\.\d+\.\d+/g, 'v<node>')
     .replace(/"npm":"[^"]+"/g, '"npm":"<npm>"');
 
 /**
@@ -136,7 +176,7 @@ const genPathWithout = (input: { hidden: string[] }): string =>
  * .real = npm runs its own self-install engine check on a `file:` spec the same as on a
  *         registry spec (`npm error code EBADENGINE`, `notsup Required/Actual`), and the
  *         skill reads only the install exit, that code, and the bin's `--version`.
- *         case1 stays live against the registry
+ *         case1 (success) and case15 (EBADENGINE) run the same verdicts live on the registry
  */
 const genFakeNpm = (input: {
   slug: string;
@@ -209,6 +249,41 @@ const genBundledNpmStub = (input: { version: string }): string => {
 };
 
 /**
+ * .what = a dir that holds an `npm` which reports a chosen version, and hands every other call to the test's real npm
+ * .why = pins the guard mirror's verdict on any host, yet still lets the step install for real
+ *
+ * .mock = the npm beside the .nvmrc node
+ * .why = the host npm's own version would otherwise decide skip vs install
+ * .real = the skill reads only that npm's `--version` for the guard; the install call runs the real npm
+ */
+const genBundledNpmStubThatDelegates = (input: { version: string }): string => {
+  const dir = genTempDir({ slug: 'verify-pin-bundled-npm-delegates' });
+  const npmReal = path.join(path.dirname(process.execPath), 'npm');
+  fs.writeFileSync(
+    path.join(dir, 'npm'),
+    `#!/usr/bin/env bash\nif [[ "$1" == --version ]]; then echo ${input.version}; exit 0; fi\nexec ${JSON.stringify(npmReal)} "$@"\n`,
+    { mode: 0o755 },
+  );
+  return dir;
+};
+
+/**
+ * .what = a dir that holds an `npm` which cannot start: it prints a fault and exits 3
+ * .why = proves the guard-mirror branch, where the npm beside the .nvmrc node is broken
+ *
+ * .mock = the npm beside the .nvmrc node
+ * .why = a real broken node install cannot be built on demand on a ci host
+ * .real = the skill reads only that npm's `--version` exit and stderr, as for any npm
+ */
+const genBundledNpmStubThatCannotStart = (): string => {
+  const dir = genTempDir({ slug: 'verify-pin-bundled-npm-broken' });
+  fs.writeFileSync(path.join(dir, 'npm'), '#!/usr/bin/env bash\necho "fake bundled npm: cannot start" >&2\nexit 3\n', {
+    mode: 0o755,
+  });
+  return dir;
+};
+
+/**
  * .what = a dir that holds an `fnm` which knows no node
  * .why = proves the fnm-lacks-the-node branch on any host, ci included
  *
@@ -229,10 +304,9 @@ const genFnmStubThatKnowsNoNode = (): string => {
  *        answers `npm error code ETARGET`, with no tie to the public registry
  *
  * .mock = the npm registry
- * .why = a pr's ci may restore node_modules from cache and make no other registry call;
- *        a live ETARGET case would add one
+ * .why = proves the ETARGET branch with no network, so it holds when the registry is slow
  * .real = npm decides ETARGET from the packument's `versions` alone; the public registry
- *         serves the same packument shape. case1 stays live against the public registry
+ *         serves the same packument shape. case14 runs the same verdict live on it
  * .note = a child process, since runSkill's spawnSync blocks this worker's event loop
  */
 const startFakeRegistry = async (): Promise<{ url: string; stop: () => void }> => {
@@ -263,6 +337,24 @@ const startFakeRegistry = async (): Promise<{ url: string; stop: () => void }> =
   return { url: `http://127.0.0.1:${port}/`, stop: () => child.kill() };
 };
 
+/**
+ * .what = the published npm whose engine broke the v0.1.6 tag, and its engine range
+ * .why = a published version is immutable, so its engine range is a fixed fact of the registry
+ */
+const NPM_EXCLUDES_NVMRC_NODE = { spec: '12.2.3', engineNode: '^22.22.2 || ^24.15.0 || >=26.0.0' };
+
+/**
+ * .what = succeed when a node version sits inside npm 12.2.3's engine range
+ * .why = the live EBADENGINE case needs a host node outside that range, and must say so if not
+ */
+const isNodeInsideNpm1223Engine = (input: { version: string }): boolean => {
+  const [major = 0, minor = 0, patch = 0] = input.version.replace(/^v/, '').split('.').map(Number);
+  if (major >= 26) return true;
+  if (major === 24) return minor >= 15;
+  if (major === 22) return minor > 22 || (minor === 22 && patch >= 2);
+  return false;
+};
+
 describe('verify.publish-npm-pin', () => {
   given('[case1] the repo workflow, which pins npm@11, on the repo .nvmrc node', () => {
     when('[t0] the skill runs with no flags', () => {
@@ -279,6 +371,11 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stdout).toMatch(
           /✨ npm 11\.\d+\.\d+ runs on node v[\d.]+, >= 11\.5\.1 for oidc|✨ npm [\d.]+ >= 11\.5\.1 already, so the tag skips this step/,
         );
+      });
+
+      then('its masked live stdout holds the shape a maintainer sees on the real workflow and registry', () => {
+        // a .nvmrc bump to a node whose npm clears the floor flips this to the skip tree; a resnap shows it
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -330,6 +427,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: npm 10.9.4 < 11.5.1, too old for oidc');
         expect(result.stderr).toContain('fix: pin an npm >= 11.5.1');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -348,6 +446,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 12.0.0-pre.1 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -364,6 +463,8 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2, since semver ranks a prerelease below its release', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: npm 11.5.1-pre.1 < 11.5.1, too old for oidc');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -381,6 +482,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 11.5.1+build.7 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -409,6 +511,56 @@ describe('verify.publish-npm-pin', () => {
       then('stderr names the absent spec and how to list real ones', () => {
         expect(result.stderr).toContain("✋ ConstraintError: the registry holds no npm that matches '0.0.0-absent'");
         expect(result.stderr).toContain('fix: pick a published spec; list them with: npm view npm versions');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case14] the public registry, asked for an npm it does not hold', () => {
+    when('[t0] the skill runs with --spec 0.0.0-absent, live', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: ['--spec', '0.0.0-absent'],
+          cwd: genRepoOnHostNode({ slug: 'verify-pin-host-live-etarget' }),
+          path: null,
+          env: null,
+        }),
+      );
+
+      then('it exits 2 on the registry\'s real ETARGET, and names the spec and how to list real ones', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain("✋ ConstraintError: the registry holds no npm that matches '0.0.0-absent'");
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case15] the public registry, asked for npm 12.2.3, whose engine broke the v0.1.6 tag', () => {
+    when('[t0] the skill runs with --spec 12.2.3 on a node outside its engine, live', () => {
+      const result = useBeforeAll(async () => {
+        // fail loud, not silent, on a host node that npm 12.2.3 accepts; the case proves naught there
+        // a .nvmrc bump into that range (the case=2 remedy) trips this; repoint NPM_EXCLUDES_NVMRC_NODE to an npm whose engine excludes the new node
+        if (isNodeInsideNpm1223Engine({ version: process.version }))
+          throw new ConstraintError('this case needs a node outside npm 12.2.3 engine range', {
+            node: process.version,
+            engineNode: NPM_EXCLUDES_NVMRC_NODE.engineNode,
+            hint: 'run on the .nvmrc node, or pick a published npm whose engine excludes this node (npm view npm@<v> engines.node)',
+          });
+        return runSkill({
+          args: ['--spec', NPM_EXCLUDES_NVMRC_NODE.spec],
+          cwd: genRepoOnHostNode({ slug: 'verify-pin-host-live-ebadengine' }),
+          path: null,
+          env: null,
+        });
+      });
+
+      then('it exits 2 on npm\'s real EBADENGINE, with the real Required range and the fix', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('✋ ConstraintError: npm@12.2.3 does not run on node');
+        expect(result.stderr).toContain(`notsup Required: {"node":"${NPM_EXCLUDES_NVMRC_NODE.engineNode}"}`);
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -433,6 +585,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toContain('💥 MalfunctionError: npm install failed for a reason other than engine or spec');
         expect(result.stderr).toContain('ECONNREFUSED');
         expect(result.stderr).toContain('fix: read the npm errors above; on a network or registry fault, re-run');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -457,6 +610,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toContain('💥 MalfunctionError: the installed npm did not report its version');
         expect(result.stderr).toContain('fake npm: cannot start');
         expect(result.stderr).toContain('fix: re-run; if it repeats');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -480,6 +634,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 11.9.9 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -515,6 +670,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 11.9.9 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -527,6 +683,9 @@ describe('verify.publish-npm-pin', () => {
 
       then('it exits 2 with the flag named and the help hint', () => {
         expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('✋ ConstraintError: unknown flag --bogus');
+        expect(result.stderr).toContain('fix: the flags are --spec <spec> and --help; see rhx verify.publish-npm-pin --help');
+        expect(result.stdout).toBe('');
         expect(result.stderr).toMatchSnapshot();
       });
     });
@@ -538,6 +697,9 @@ describe('verify.publish-npm-pin', () => {
 
       then('it exits 2 and names the fix', () => {
         expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('✋ ConstraintError: --spec needs a value');
+        expect(result.stderr).toContain('fix: rhx verify.publish-npm-pin --spec <spec>, e.g. --spec 11');
+        expect(result.stdout).toBe('');
         expect(result.stderr).toMatchSnapshot();
       });
     });
@@ -550,6 +712,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 with a qualified error, not a raw shell fault', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: --skill needs a value');
+        expect(result.stdout).toBe('');
         expect(result.stderr).toMatchSnapshot();
       });
     });
@@ -562,6 +725,22 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the fix', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: --spec needs a value');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] the skill runs with --spec followed by another flag', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({ args: ['--spec', '--skill', 'x'], cwd: REPO_ROOT, path: null, env: null }),
+      );
+
+      then('it exits 2 and reads the flag as an absent value, not as spec "--skill"', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('✋ ConstraintError: --spec needs a value');
+        expect(result.stderr).not.toContain('npm@--skill');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -575,6 +754,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the fix', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('is not in a git repo');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -592,6 +772,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the absent file', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: no publish workflow at');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -609,6 +790,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the install command, rather than install a node itself', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: fnm holds no node v0.0.1');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -630,6 +812,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and lists each spec, rather than pick one', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('(11, latest)');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -646,7 +829,9 @@ describe('verify.publish-npm-pin', () => {
 
       then('it exits 2 and names both ways forward', () => {
         expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain("if the workflow still upgrades npm, write the step as 'npm install -g npm@<spec>'");
         expect(result.stderr).toContain('there is no pin left to verify');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -667,7 +852,8 @@ describe('verify.publish-npm-pin', () => {
 
       then('it exits 2 and asks for a literal spec, rather than install a guess', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('is an expression, which only the tag run can expand');
+        expect(result.stderr).toContain("the workflow's npm spec '${{ env.NPM_SPEC }}' is an expression, which only the tag run can expand");
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -685,6 +871,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the absent file', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: no .nvmrc at');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -702,6 +889,7 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names both fixes', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('.nvmrc names v0.0.1, and fnm is absent');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -710,7 +898,7 @@ describe('verify.publish-npm-pin', () => {
       const result = useBeforeAll(async () =>
         runSkill({
           args: [],
-          cwd: genRepoFixture({ slug: 'verify-pin-no-node', nvmrc: 'v22.21.0\n', workflow: WORKFLOW_WITH_PIN }),
+          cwd: genRepoFixture({ slug: 'verify-pin-no-node', nvmrc: 'v0.0.1\n', workflow: WORKFLOW_WITH_PIN }),
           path: genPathWithout({ hidden: ['node', 'fnm'] }),
           env: null,
         }),
@@ -719,7 +907,8 @@ describe('verify.publish-npm-pin', () => {
       then('it exits 2 and names the node to install', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('✋ ConstraintError: node is absent from PATH');
-        expect(result.stderr).toContain('fix: install node v22.21.0, or fnm');
+        expect(result.stderr).toContain('fix: install node v0.0.1, or fnm');
+        expect(result.stdout).toBe('');
         expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
@@ -742,6 +931,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 11.9.9 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -763,6 +953,49 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stderr).toBe('');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('✨ npm 11.9.9 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
+      });
+    });
+
+    when('[t12] the .nvmrc holds a major.minor, as setup-node accepts', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: asSpecForFakeNpm({ slug: 'verify-pin-npm-major-minor', version: '11.9.9' }),
+          cwd: genRepoFixture({
+            slug: 'verify-pin-major-minor-nvmrc',
+            nvmrc: `${process.version.replace(/^v/, '').split('.').slice(0, 2).join('.')}\n`,
+            workflow: WORKFLOW_WITH_PIN,
+          }),
+          path: genPathWithout({ hidden: ['fnm'] }),
+          env: null,
+        }),
+      );
+
+      then('it counts the current node as a match, with no fnm needed, and exits 0', () => {
+        expect(result.stderr).toBe('');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('✨ npm 11.9.9 runs on node');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
+      });
+    });
+
+    when('[t13] the .nvmrc holds an alias, lts/*, and fnm is absent', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: [],
+          cwd: genRepoFixture({ slug: 'verify-pin-alias-nvmrc', nvmrc: 'lts/*\n', workflow: WORKFLOW_WITH_PIN }),
+          path: genPathWithout({ hidden: ['fnm'] }),
+          env: null,
+        }),
+      );
+
+      then('it never matches the alias to the current node, and asks for fnm to expand it', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('.nvmrc names lts/*, and fnm is absent');
+        expect(result.stderr).toContain('fix: install fnm (https://github.com/Schniz/fnm), which expands the alias lts/*');
+        expect(result.stderr).not.toContain('switch to node lts/*');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -806,6 +1039,99 @@ describe('verify.publish-npm-pin', () => {
         expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
+
+    when('[t1] the skill runs with --spec, on that same node', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: asSpecForFakeNpm({ slug: 'verify-pin-npm-spec-bypass', version: '11.9.9' }),
+          cwd: genRepoFixture({ slug: 'verify-pin-spec-bypass', nvmrc: 'v0.0.1\n', workflow: WORKFLOW_WITH_PIN }),
+          path: [
+            genFnmStubThatExecs({ pathFirst: [genBundledNpmStubThatDelegates({ version: '11.6.0' })] }),
+            genPathWithout({ hidden: ['fnm'] }),
+          ].join(path.delimiter),
+          env: null,
+        }),
+      );
+
+      then('it runs the install anyway, since an explicit spec is a request to try it, and exits 0', () => {
+        expect(result.stderr).toBe('');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('skips this step');
+        expect(result.stdout).toContain('✨ npm 11.9.9 runs on node v0.0.1, >= 11.5.1 for oidc');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case16] a host fault before the install', () => {
+    when('[t0] the npm beside the .nvmrc node cannot report its version', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: [],
+          cwd: genRepoFixture({ slug: 'verify-pin-bundled-broken', nvmrc: 'v0.0.1\n', workflow: WORKFLOW_WITH_PIN }),
+          path: [
+            genFnmStubThatExecs({ pathFirst: [genBundledNpmStubThatCannotStart()] }),
+            genPathWithout({ hidden: ['fnm'] }),
+          ].join(path.delimiter),
+          env: null,
+        }),
+      );
+
+      then('it exits 1 (malfunction) under the run tree, as case9 does, with that npm stderr as a branch and a fix', () => {
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain('🐚 verify.publish-npm-pin --spec 11');
+        expect(result.stderr).toContain('   └─ 💥 MalfunctionError: the npm beside node v0.0.1 did not report its version\n');
+        expect(result.stderr).toContain('      ├─ fake bundled npm: cannot start');
+        expect(result.stderr).toContain('      └─ fix: check the node install, then re-run');
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the publish workflow cannot be read', () => {
+      const result = useBeforeAll(async () => {
+        // fail loud, not silent, as root: root reads a mode 000 file, so the case proves naught there
+        if (process.getuid?.() === 0)
+          throw new ConstraintError('this case needs a non-root user, since root ignores file modes', {
+            uid: 0,
+            hint: 'run the suite as a non-root user',
+          });
+        const repo = genRepoFixture({ slug: 'verify-pin-workflow-unreadable', nvmrc: 'v0.0.1\n', workflow: WORKFLOW_WITH_PIN });
+        fs.chmodSync(path.join(repo, '.github/workflows/.publish-npm.yml'), 0o000);
+        return runSkill({ args: [], cwd: repo, path: null, env: null });
+      });
+
+      then('it exits 1 (malfunction), names the file, and the fix, with no raw tool fault above it', () => {
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr.startsWith('🐢 bummer dude...')).toBe(true);
+        expect(result.stderr).toContain('💥 MalfunctionError: could not read');
+        expect(result.stderr).toContain("fix: check the file's read permission, then re-run");
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] the temp dir for the npm prefix cannot be made', () => {
+      const result = useBeforeAll(async () =>
+        runSkill({
+          args: asSpecForFakeNpm({ slug: 'verify-pin-npm-no-tmp', version: '11.9.9' }),
+          cwd: genRepoOnHostNode({ slug: 'verify-pin-host-no-tmp' }),
+          path: null,
+          env: { TMPDIR: '/nonexistent/verify-pin-tmpdir' },
+        }),
+      );
+
+      then('it exits 1 (malfunction), names the dir it tried, and TMPDIR in the fix, with no raw tool fault above it', () => {
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr.startsWith('🐢 bummer dude...')).toBe(true);
+        expect(result.stderr).toContain('🐚 verify.publish-npm-pin --spec file:');
+        expect(result.stderr).toContain(
+          '   └─ 💥 MalfunctionError: could not make a temp dir under /nonexistent/verify-pin-tmpdir for the npm prefix',
+        );
+        expect(result.stdout).toBe('');
+        expect(asSnapshotSafe({ output: result.stderr })).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case10] a workflow whose upgrade line is quoted, beside a commented-out one', () => {
@@ -816,10 +1142,14 @@ describe('verify.publish-npm-pin', () => {
           args: [],
           cwd: genRepoFixture({
             slug: 'verify-pin-quoted-line',
-            nvmrc: `${process.version}\n`,
+            nvmrc: 'v0.0.1\n',
             workflow: `# run: npm install -g npm@latest\nrun: "npm install -g npm@file:${fakeNpm}"; echo done\n`,
           }),
-          path: null,
+          // the guard mirror reads a pinned 10.0.0, so the host npm's own version never flips this case to the skip tree
+          path: [
+            genFnmStubThatExecs({ pathFirst: [genBundledNpmStubThatDelegates({ version: '10.0.0' })] }),
+            genPathWithout({ hidden: ['fnm'] }),
+          ].join(path.delimiter),
           env: null,
         });
       });
@@ -830,6 +1160,7 @@ describe('verify.publish-npm-pin', () => {
         expect(result.stdout).toMatch(/--spec file:\S+verify-pin-npm-quoted\S*\n/);
         expect(result.stdout).not.toContain('"');
         expect(result.stdout).not.toContain('npm@latest');
+        expect(asSnapshotSafe({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });

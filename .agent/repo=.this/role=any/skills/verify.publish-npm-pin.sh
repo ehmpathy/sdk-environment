@@ -12,6 +12,10 @@
 #   rhx verify.publish-npm-pin                  # the spec in the workflow
 #   rhx verify.publish-npm-pin --spec latest    # a spec of your choice
 #
+# options:
+#   --spec <spec>   the npm spec to install (default: the one in the workflow)
+#   --help, -h      print this contract and exit 0
+#
 # guarantee:
 #   - reads the spec from .github/workflows/.publish-npm.yml unless --spec;
 #     a `${{ … }}` spec is refused, since only the tag run can expand it
@@ -35,8 +39,12 @@ set -euo pipefail
 fail_constraint() {
   local what="${1#what=}"
   local fix="${2#fix=}"
-  echo "✋ ConstraintError: $what" >&2
-  echo "   └─ fix: $fix" >&2
+  {
+    echo "🐢 bummer dude..."
+    echo ""
+    echo "✋ ConstraintError: $what"
+    echo "   └─ fix: $fix"
+  } >&2
   exit 2
 }
 
@@ -48,8 +56,12 @@ fail_constraint() {
 fail_malfunction() {
   local what="${1#what=}"
   local fix="${2#fix=}"
-  echo "💥 MalfunctionError: $what" >&2
-  echo "   └─ fix: $fix" >&2
+  {
+    echo "🐢 bummer dude..."
+    echo ""
+    echo "💥 MalfunctionError: $what"
+    echo "   └─ fix: $fix"
+  } >&2
   exit 1
 }
 
@@ -64,13 +76,15 @@ is_flag_value_absent() {
 }
 
 ######################################################################
-# .what = print this skill's top header, from .what to the last guarantee
+# .what = print the mascot line, then this skill's top header with its comment marks cut
 # .why  = --help shows the same contract the file declares, with no copy to drift
 # usage: print_skill_header skill="$0"
 ######################################################################
 print_skill_header() {
   local skill="${1#skill=}"
-  sed -n '3,/^####/{/^####/!p}' "$skill"
+  echo "🐢 heres the wave..."
+  echo ""
+  sed -n '3,/^####/{/^####/!s/^# \{0,1\}//p}' "$skill"
 }
 
 # parse flags
@@ -94,7 +108,7 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2 ;; # the rhx wrapper prepends --skill <name>
     --help|-h) print_skill_header skill="$0"; exit 0 ;;
-    *) fail_constraint what="unknown flag $1" fix="rhx verify.publish-npm-pin --help" ;;
+    *) fail_constraint what="unknown flag $1" fix="the flags are --spec <spec> and --help; see rhx verify.publish-npm-pin --help" ;;
   esac
 done
 
@@ -113,6 +127,16 @@ MIN_VERSION="11.5.1"
 get_all_npm_specs_from_workflow() {
   local workflow="${1#workflow=}"
   sed -n -e '/^[[:space:]]*#/d' -e "s/.*npm install -g npm@\([^ \"';]*\).*/\1/p" "$workflow"
+}
+
+######################################################################
+# .what = print the whole `${{ … }}` expression on the workflow's upgrade line
+# .why  = a spec stops at a space, so `${{ env.X }}` reads as `${{`; the error must quote it whole
+# usage: get_npm_spec_expression_from_workflow workflow="<path>"
+######################################################################
+get_npm_spec_expression_from_workflow() {
+  local workflow="${1#workflow=}"
+  sed -n -e '/^[[:space:]]*#/d' -e 's/.*npm install -g npm@\([$][{][{][^}]*[}][}]\).*/\1/p' "$workflow" | sed -n '1p'
 }
 
 ######################################################################
@@ -213,10 +237,13 @@ emit_engine_mismatch_lines() {
 # .what = print npm's error code line, then the log's last 6 lines, as tree branches
 # .why  = the code names the cause (ECONNREFUSED, E404); the tail can hold only npm's advice
 # usage: emit_install_log_cause log="<install log>"
+# .note = a bare "npm error" line is a blank in npm's log; it would draw an empty branch
 ######################################################################
 emit_install_log_cause() {
   local log="${1#log=}"
-  { grep -m1 'npm error code' "$log" || true; tail -n 6 "$log"; } | sed 's/^/      ├─ /'
+  { grep -m1 'npm error code' "$log" || true; tail -n 6 "$log"; } \
+    | { grep -vE '^npm error[[:space:]]*$' || true; } \
+    | sed 's/^/      ├─ /'
 }
 
 # read the spec from the workflow, unless given; exactly one upgrade line must exist
@@ -226,7 +253,8 @@ if [[ -z "$SPEC" ]]; then
   if [[ ! -f "$WORKFLOW" ]]; then
     fail_constraint what="no publish workflow at $WORKFLOW" fix="pass --spec <spec>, or run from a repo with the workflow"
   fi
-  if ! SPECS="$(get_all_npm_specs_from_workflow workflow="$WORKFLOW")"; then
+  # an unreadable file is checked first, so sed's raw fault never prints above the error
+  if [[ ! -r "$WORKFLOW" ]] || ! SPECS="$(get_all_npm_specs_from_workflow workflow="$WORKFLOW" 2> /dev/null)"; then
     fail_malfunction what="could not read $WORKFLOW" fix="check the file's read permission, then re-run"
   fi
   if [[ -z "$SPECS" ]]; then
@@ -236,7 +264,7 @@ if [[ -z "$SPEC" ]]; then
     fail_constraint what="several 'npm install -g npm@<spec>' lines in $WORKFLOW ($(get_lines_joined text="$SPECS"))" fix="pass --spec <spec> for the one to check"
   fi
   if [[ "$SPECS" == *'$'* ]]; then
-    fail_constraint what="the workflow's npm spec '$SPECS' is an expression, which only the tag run can expand" fix="pin a literal spec in the workflow (e.g. npm@11), or pass --spec <value> to check one value"
+    fail_constraint what="the workflow's npm spec '$(get_npm_spec_expression_from_workflow workflow="$WORKFLOW")' is an expression, which only the tag run can expand" fix="pin a literal spec (e.g. npm@11), or pass --spec <value>"
   fi
   SPEC="$SPECS"
 fi
@@ -254,8 +282,12 @@ fi
 NODE_RUNNER=()
 NPM_BIN="$(get_npm_bin_beside_node)"
 if ! is_node_version_match current="$(node --version)" pin="$NODE_VERSION"; then
-  if ! command -v fnm > /dev/null; then
+  # an alias (lts/*, a codename) names no node to switch to; only fnm expands it
+  if ! command -v fnm > /dev/null && [[ "$NODE_VERSION" =~ ^v?[0-9] ]]; then
     fail_constraint what="node is $(node --version), .nvmrc names $NODE_VERSION, and fnm is absent" fix="switch to node $NODE_VERSION, or install fnm (https://github.com/Schniz/fnm)"
+  fi
+  if ! command -v fnm > /dev/null; then
+    fail_constraint what="node is $(node --version), .nvmrc names $NODE_VERSION, and fnm is absent" fix="install fnm (https://github.com/Schniz/fnm), which expands the alias $NODE_VERSION"
   fi
   if ! fnm exec --using="$NODE_VERSION" node --version > /dev/null 2>&1; then
     fail_constraint what="fnm holds no node $NODE_VERSION" fix="fnm install $NODE_VERSION"
@@ -264,16 +296,11 @@ if ! is_node_version_match current="$(node --version)" pin="$NODE_VERSION"; then
   NPM_BIN="npm" # fnm exec puts its node's own npm first on PATH
 fi
 
-# install into a throwaway prefix
-if ! PREFIX="$(mktemp -d)"; then
-  fail_malfunction what="could not make a temp dir for the npm prefix" fix="check that TMPDIR exists and has free space, then re-run"
-fi
-trap 'rm -rf "$PREFIX"' EXIT
-
 ######################################################################
 # .what = print the mascot line and the skill header tree
 # .why  = the vibe line tracks the verdict, so both headers print after the run
 # usage: emit_header vibe="righteous!" spec="11" node="v22.21.0"
+# .note = every fault after the spec and node are known prints under this tree
 ######################################################################
 emit_header() {
   local vibe="${1#vibe=}"
@@ -286,10 +313,27 @@ emit_header() {
   echo "   ├─ step: npm install -g npm@$spec"
 }
 
+# install into a throwaway prefix
+if ! PREFIX="$(mktemp -d 2> /dev/null)"; then
+  {
+    emit_header vibe="bummer dude..." spec="$SPEC" node="$NODE_VERSION"
+    echo "   └─ 💥 MalfunctionError: could not make a temp dir under ${TMPDIR:-/tmp} for the npm prefix"
+    echo "      └─ fix: check that TMPDIR exists and has free space, then re-run"
+  } >&2
+  exit 1
+fi
+trap 'rm -rf "$PREFIX"' EXIT
+
 # mirror the workflow's guard: the tag upgrades npm only when the node's own npm is below the floor
 if [[ "$SPEC_SOURCE" == "workflow" ]]; then
   if ! BUNDLED="$(run_on_node "$NPM_BIN" --version 2> "$PREFIX/bundled.err")"; then
-    fail_malfunction what="the npm beside node $NODE_VERSION did not report its version: $(cat "$PREFIX/bundled.err")" fix="check the node install, then re-run"
+    {
+      emit_header vibe="bummer dude..." spec="$SPEC" node="$NODE_VERSION"
+      echo "   └─ 💥 MalfunctionError: the npm beside node $NODE_VERSION did not report its version"
+      sed 's/^/      ├─ /' "$PREFIX/bundled.err"
+      echo "      └─ fix: check the node install, then re-run"
+    } >&2
+    exit 1
   fi
   if is_version_at_least version="$BUNDLED" floor="$MIN_VERSION"; then
     emit_header vibe="righteous!" spec="$SPEC" node="$NODE_VERSION"
